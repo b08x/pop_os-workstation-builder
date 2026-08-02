@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: podman_docker
+# Purpose: Container runtimes, rootless networking, and user group memberships
+# ============================================================================
+
+- name: Install Container Runtimes (Docker & Podman)
+  become: true
+  ansible.builtin.apt:
+    name: "{{ pop_os_packages.containers }}"
+    state: present
+  tags: ["packages", "docker", "podman"]
+
+- name: Enable and start Docker Daemon Service
+  become: true
+  ansible.builtin.systemd:
+    name: docker.service
+    enabled: true
+    state: started
+  tags: ["systemd", "docker"]
+
+- name: Ensure target user exists and assign critical hardware/container group memberships
+  become: true
+  ansible.builtin.user:
+    name: "{{ target_user | default(ansible_user_id) }}"
+    groups:
+      - docker
+      - audio
+      - video
+      - sudo
+    append: true
+  tags: ["groups", "permissions", "users"]

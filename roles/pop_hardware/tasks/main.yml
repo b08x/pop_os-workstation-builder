@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: pop_hardware
+# Purpose: Orchestrates System76 drivers, GPU power profiles, & systemd-boot
+# ============================================================================
+
+- name: Ensure System76 Core Daemons & Hardware Drivers are Installed
+  become: true
+  ansible.builtin.apt:
+    name: "{{ pop_os_packages.system76_core }}"
+    state: present
+  tags: ["system76", "hardware", "drivers"]
+
+- name: Install NVIDIA GPU and AI/ML Workstation Libraries if applicable
+  when: enable_hybrid_graphics | default(true) | bool
+  become: true
+  ansible.builtin.apt:
+    name: "{{ pop_os_packages.nvidia_ai_ml }}"
+    state: present
+  ignore_errors: true # Avoid hard stop if running on purely Intel/AMD hardware without System76 NVIDIA repos
+  tags: ["nvidia", "cuda", "aiml"]
+
+- name: Enable & Start System76 Power and Scheduler Daemons
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - system76-power.service
+    - system76-scheduler.service
+  tags: ["systemd", "daemons", "power", "scheduler"]
+
+- name: Configure Hybrid Graphics Switching Profile via System76 Power
+  when: enable_hybrid_graphics | default(true) | bool
+  become: true
+  ansible.builtin.command: "system76-power graphics hybrid"
+  register: power_graphics_result
+  changed_when: "'switching' in power_graphics_result.stdout|lower or 'changed' in power_graphics_result.stdout|lower"
+  failed_when: false # Ignore if hardware is already set or lacks hybrid GPU capability
+  tags: ["graphics", "gpu"]
+
+- name: Manage Kernel Parameters via systemd-boot (kernelstub)
+  become: true
+  block:
+    - name: Verify kernelstub tool is present (Standard Pop!_OS UEFI Bootloader API)
+      ansible.builtin.command: "which kernelstub"
+      register: kernelstub_present
+      changed_when: false
+      failed_when: false
+
+    - name: Apply NVIDIA DRM Modeset & Quiet Boot Parameters via kernelstub
+      when: kernelstub_present.rc == 0
+      ansible.builtin.command: 'kernelstub --add-options "{{ item }}"'
+      register: kernelstub_exec
+      changed_when: "'No changes made' not in kernelstub_exec.stdout and 'already present' not in kernelstub_exec.stdout|lower"
+      loop:
+        - "nvidia-drm.modeset=1"
+        - "quiet"
+        - "loglevel=3"
+      tags: ["kernelstub", "bootloader", "efi"]
+  tags: ["boot"]

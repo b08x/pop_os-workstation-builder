@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Master Workstation Provisioning Playbook for Pop!_OS
+# Orchestrates Layer 1 System Setup and transitions to Layer 2 User Dotfiles
+# ============================================================================
+
+- name: Provision Pop!_OS / System76 Workstation
+  hosts: workstations
+  gather_facts: true
+  vars_files:
+    - ../vars/pop_os_packages.yml
+
+  pre_tasks:
+    - name: Display execution header & validate distribution
+      ansible.builtin.debug:
+        msg: |
+          ╔════════════════════════════════════════════════════════════════╗
+          ║          Pop!_OS Workstation Provisioning Engine              ║
+          ║          Target User: {{ target_user | default('b08x') }}      ║
+          ╚════════════════════════════════════════════════════════════════╝
+          Detected Distribution: {{ ansible_distribution }} {{ ansible_distribution_version }}
+
+    - name: Assert running on Pop!_OS or compatible Debian/Ubuntu OS
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["Pop!_OS", "Ubuntu", "Debian"]
+        fail_msg: |
+          Incompatible Linux Distribution!
+          This playbook requires Pop!_OS, Ubuntu, or Debian.
+          Detected: {{ ansible_distribution }} (Family: {{ ansible_os_family }})
+        success_msg: "Distribution validated: {{ ansible_distribution }}"
+
+  roles:
+    - role: pop_base
+      tags: ["base", "system", "apt"]
+
+    - role: pop_hardware
+      tags: ["hardware", "system76", "nvidia", "bootloader"]
+
+    - role: pop_cosmic
+      tags: ["desktop", "cosmic", "gui", "shell"]
+
+    - role: podman_docker
+      when: enable_container_tools | default(true) | bool
+      tags: ["containers", "docker", "podman"]
+
+    - role: yadm_bootstrap
+      when: enable_yadm_bootstrap | default(true) | bool
+      tags: ["yadm", "dotfiles", "user"]
+
+  post_tasks:
+    - name: Display completion summary
+      ansible.builtin.debug:
+        msg: |
+          ╔════════════════════════════════════════════════════════════════╗
+          ║             Provisioning Completed Successfully                ║
+          ╚════════════════════════════════════════════════════════════════╝
+          - Layer 1 System setup and daemons fully initialized.
+          - Layer 2 Dotfiles & CLI tool manifests passed to yadm.
+          
+          Recommendation: Reboot your system if GPU drivers or kernelstub parameters were modified.

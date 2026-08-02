@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: MIT-0
+---
+# APT Package Taxonomy for Pop!_OS Workstation Provisioning
+# Structured cleanly by functional component (Layer 1 System Packages Only)
+
+pop_os_packages:
+  base_cli:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - git
+    - gnupg
+    - htop
+    - jq
+    - lsb-release
+    - make
+    - build-essential
+    - software-properties-common
+    - stow
+    - tmux
+    - tree
+    - unzip
+    - wget
+    - zip
+    - zsh
+
+  system76_core:
+    - pop-desktop
+    - system76-driver
+    - system76-power
+    - system76-scheduler
+    - firmware-manager
+    - linux-system76
+
+  nvidia_ai_ml:
+    - system76-driver-nvidia
+    - nvidia-container-toolkit
+    - libnvidia-container-tools
+    - nvidia-driver-550
+    - nvidia-cuda-toolkit
+    - python3-dev
+    - g++
+    - cmake
+    - ninja-build
+
+  audio_media:
+    - pipewire
+    - pipewire-pulse
+    - pipewire-jack
+    - wireplumber
+    - rtkit
+    - ffmpeg
+    - libsndfile1-dev
+    - sox
+
+  containers:
+    - podman
+    - docker.io
+    - docker-compose-v2
+    - uidmap
+    - dbus-user-session
+
+  fonts:
+    - fonts-firacode
+    - fonts-cascadia-code
+    - fonts-noto-color-emoji
+    - fonts-inter

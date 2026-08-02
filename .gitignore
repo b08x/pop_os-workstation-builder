@@ -1,0 +1,25 @@
+# Ansible specific
+*.retry
+.ansible/
+*.fact
+fact_cache/
+.vault
+*.vault_pass
+secrets.yml
+
+# Virtual environments & python
+.venv/
+__pycache__/
+*.pyc
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary & agent scratch files
+scratch/
+.scratch/
+.system_generated/
+*.log

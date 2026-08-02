@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: MIT-0
+---
+# Rapid Bootstrap Entrypoint Playbook for bare-metal initialization
+# Focuses on minimal requirements before kicking off full workstation setup
+
+- name: Bootstrap Bare-Metal Pop!_OS System
+  hosts: workstations
+  gather_facts: true
+
+  tasks:
+    - name: Ensure APT caches are updated and minimal utilities installed
+      become: true
+      ansible.builtin.apt:
+        name:
+          - git
+          - curl
+          - sudo
+          - zsh
+          - stow
+        state: present
+        update_cache: true
+
+    - name: Check if yadm is installed
+      ansible.builtin.command: which yadm
+      register: yadm_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install yadm via APT if available or official download script
+      when: yadm_check.rc != 0
+      become: true
+      ansible.builtin.apt:
+        name: yadm
+        state: present
+      ignore_errors: true
+
+    - name: Display instructions to run master playbook
+      ansible.builtin.debug:
+        msg: |
+          Bootstrap initialization complete!
+          To run the full workstation configuration, execute:
+          ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml --ask-become-pass

@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: pop_cosmic
+# Purpose: COSMIC Desktop Environment, Pop!_Shell window tiling, & Fonts
+# ============================================================================
+
+- name: Install Monospace Engineering and UI Fonts
+  become: true
+  ansible.builtin.apt:
+    name: "{{ pop_os_packages.fonts }}"
+    state: present
+  tags: ["fonts", "desktop"]
+
+- name: Ensure Pop!_Shell Tiling Extension and Audio production components are ready
+  become: true
+  ansible.builtin.apt:
+    name: "{{ pop_os_packages.audio_media }}"
+    state: present
+  tags: ["audio", "pipewire", "media"]
+
+- name: Configure PipeWire real-time threading privileges (rtkit)
+  become: true
+  ansible.builtin.systemd:
+    name: rtkit-daemon.service
+    enabled: true
+    state: started
+  ignore_errors: true
+  tags: ["pipewire", "audio", "rtkit"]

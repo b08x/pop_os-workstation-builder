@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: yadm_bootstrap (Layer 2 User Identity Handoff)
+# Purpose: Clones user dotfiles and executes declarative tool bootstrapping
+# ============================================================================
+
+- name: Verify yadm installation status
+  ansible.builtin.command: "which yadm"
+  register: yadm_path
+  changed_when: false
+  failed_when: false
+  tags: ["yadm", "check"]
+
+- name: Install yadm package via APT if not found
+  when: yadm_path.rc != 0
+  become: true
+  ansible.builtin.apt:
+    name: yadm
+    state: present
+  tags: ["yadm", "install"]
+
+- name: Check if yadm repository has already been cloned for user
+  become: false
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.local/share/yadm/repo.git"
+  register: yadm_repo_stat
+  tags: ["yadm", "clone"]
+
+- name: Clone user dotfiles via yadm (Layer 2 User Identity)
+  when: not yadm_repo_stat.stat.exists and yadm_dotfiles_repo is defined
+  become: false
+  ansible.builtin.command: "yadm clone --bootstrap {{ yadm_dotfiles_repo }}"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/share/yadm/repo.git"
+  register: yadm_clone
+  ignore_errors: true # May require interactive SSH passphrase or token on first run
+  tags: ["yadm", "clone", "bootstrap"]
+
+- name: Display note regarding Layer 2 declarative tooling
+  ansible.builtin.debug:
+    msg: |
+      === Layer 2 Handoff Complete ===
+      Per our 3-Layer governance architecture, generative AI tools (gemini-cli, claude-code),
+      Rust binaries, and global npm packages are NOT installed as root by Ansible.
+      Ensure your yadm bootstrap script executes against ~/.config/tooling/* manifests!
+  tags: ["yadm", "notice"]

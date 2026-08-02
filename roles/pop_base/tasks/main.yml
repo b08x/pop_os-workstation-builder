@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: pop_base
+# Purpose: Core System Configuration, Timezone, Core Dump Protection, APT setup
+# ============================================================================
+
+- name: Set System Timezone to UTC or user preference
+  become: true
+  ansible.builtin.command: "timedatectl set-timezone {{ timezone | default('America/New_York') }}"
+  register: timezone_result
+  changed_when: timezone_result.rc == 0
+  failed_when: false
+  tags: ["timezone", "base"]
+
+- name: Disable Core Dumps to save storage and prevent PII leakage in crash traces
+  become: true
+  block:
+    - name: Create systemd coredump configuration directory
+      ansible.builtin.file:
+        path: /etc/systemd/coredump.conf.d
+        state: directory
+        mode: "0755"
+
+    - name: Deploy disable core dumps systemd override
+      ansible.builtin.copy:
+        dest: /etc/systemd/coredump.conf.d/disable-coredumps.conf
+        content: |
+          [Coredump]
+          Storage=none
+          ProcessSizeMax=0
+        mode: "0644"
+  tags: ["core_dumps", "base"]
+
+- name: Configure APT performance and non-interactive frontend defaults
+  become: true
+  ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/99-workstation-optimizations
+        content: |
+          // Auto-remove orphan dependencies without prompt
+          APT::Get::AutomaticRemove "true";
+          // Disable recommends if desired (left true for Desktop application stability)
+          APT::Install-Recommends "true";
+          APT::Install-Suggests "false";
+          // Optimize acquire speeds
+          Acquire::http::Pipeline-Depth "5";
+          Acquire::Languages "none";
+        mode: "0644"
+  tags: ["apt", "base"]
+
+- name: Update APT cache and upgrade base system packages
+  become: true
+  ansible.builtin.apt:
+    upgrade: dist
+    update_cache: true
+    cache_valid_time: 3600
+  tags: ["apt", "base", "upgrade"]
+
+- name: Install Base CLI and Engineering Toolchains (Layer 1 System Scope)
+  become: true
+  ansible.builtin.apt:
+    name: "{{ pop_os_packages.base_cli }}"
+    state: present
+  tags: ["packages", "cli", "base"]
