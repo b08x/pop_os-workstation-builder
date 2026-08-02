@@ -1,0 +1,554 @@
+{
+  "version": 1,
+  "title": "Ansible Playbook Grapher",
+  "playbooks": [
+    {
+      "type": "PlaybookNode",
+      "id": "playbook_58d9f3ca",
+      "name": "playbooks/workstation.yml",
+      "when": "",
+      "index": 1,
+      "location": {
+        "type": "file",
+        "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/playbooks/workstation.yml",
+        "line": 1,
+        "column": 1
+      },
+      "plays": [
+        {
+          "type": "PlayNode",
+          "id": "play_11ce474d",
+          "name": "Provision Pop!_OS / System76 Workstation",
+          "when": "",
+          "index": 1,
+          "location": {
+            "type": "file",
+            "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/playbooks/workstation.yml",
+            "line": 8,
+            "column": 3
+          },
+          "pre_tasks": [
+            {
+              "type": "TaskNode",
+              "id": "pre_task_d15e1046",
+              "name": "Display execution header & validate distribution",
+              "when": "",
+              "index": 1,
+              "location": {
+                "type": "file",
+                "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/playbooks/workstation.yml",
+                "line": 15,
+                "column": 7
+              },
+              "notify": []
+            },
+            {
+              "type": "TaskNode",
+              "id": "pre_task_74820ac6",
+              "name": "Assert running on Pop!_OS or compatible Debian/Ubuntu OS",
+              "when": "",
+              "index": 2,
+              "location": {
+                "type": "file",
+                "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/playbooks/workstation.yml",
+                "line": 24,
+                "column": 7
+              },
+              "notify": []
+            }
+          ],
+          "roles": [
+            {
+              "type": "RoleNode",
+              "id": "role_e0036eb7",
+              "name": "pop_base",
+              "when": "",
+              "index": 3,
+              "location": {
+                "type": "folder",
+                "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_base",
+                "line": null,
+                "column": null
+              },
+              "tasks": [
+                {
+                  "type": "TaskNode",
+                  "id": "task_4f59cd71",
+                  "name": "pop_base : Set System Timezone to UTC or user preference",
+                  "when": "",
+                  "index": 1,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_base/tasks/main.yml",
+                    "line": 8,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "BlockNode",
+                  "id": "block_ff28d114",
+                  "name": "Disable Core Dumps to save storage and prevent PII leakage in crash traces",
+                  "when": "",
+                  "index": 2,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_base/tasks/main.yml",
+                    "line": 14,
+                    "column": 3
+                  },
+                  "tasks": [
+                    {
+                      "type": "TaskNode",
+                      "id": "task_18831ca6",
+                      "name": "pop_base : Create systemd coredump configuration directory",
+                      "when": "",
+                      "index": 1,
+                      "location": {
+                        "type": "file",
+                        "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_base/tasks/main.yml",
+                        "line": 17,
+                        "column": 7
+                      },
+                      "notify": []
+                    },
+                    {
+                      "type": "TaskNode",
+                      "id": "task_51b74ec0",
+                      "name": "pop_base : Deploy disable core dumps systemd override",
+                      "when": "",
+                      "index": 2,
+                      "location": {
+                        "type": "file",
+                        "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_base/tasks/main.yml",
+                        "line": 23,
+                        "column": 7
+                      },
+                      "notify": []
+                    }
+                  ]
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_d2bbeef2",
+                  "name": "pop_base : Configure APT performance and non-interactive frontend defaults",
+                  "when": "",
+                  "index": 3,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_base/tasks/main.yml",
+                    "line": 33,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_4cd76582",
+                  "name": "pop_base : Update APT cache and upgrade base system packages",
+                  "when": "",
+                  "index": 4,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_base/tasks/main.yml",
+                    "line": 49,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_c0ffd027",
+                  "name": "pop_base : Install Base CLI and Engineering Toolchains (Layer 1 System Scope)",
+                  "when": "",
+                  "index": 5,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_base/tasks/main.yml",
+                    "line": 57,
+                    "column": 3
+                  },
+                  "notify": []
+                }
+              ],
+              "handlers": [],
+              "include_role": false
+            },
+            {
+              "type": "RoleNode",
+              "id": "role_ca1f9e4b",
+              "name": "pop_hardware",
+              "when": "",
+              "index": 4,
+              "location": {
+                "type": "folder",
+                "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware",
+                "line": null,
+                "column": null
+              },
+              "tasks": [
+                {
+                  "type": "TaskNode",
+                  "id": "task_ff63fe5f",
+                  "name": "pop_hardware : Ensure System76 Core Daemons & Hardware Drivers are Installed",
+                  "when": "",
+                  "index": 1,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware/tasks/main.yml",
+                    "line": 8,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_033652fc",
+                  "name": "pop_hardware : Install NVIDIA GPU and AI/ML Workstation Libraries if applicable",
+                  "when": "[when: enable_hybrid_graphics | default(true) | bool]",
+                  "index": 2,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware/tasks/main.yml",
+                    "line": 15,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_da08a5ae",
+                  "name": "pop_hardware : Enable & Start System76 Power and Scheduler Daemons",
+                  "when": "",
+                  "index": 3,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware/tasks/main.yml",
+                    "line": 24,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_51c517bc",
+                  "name": "pop_hardware : Configure Hybrid Graphics Switching Profile via System76 Power",
+                  "when": "[when: enable_hybrid_graphics | default(true) | bool]",
+                  "index": 4,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware/tasks/main.yml",
+                    "line": 35,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "BlockNode",
+                  "id": "block_794dee11",
+                  "name": "Manage Kernel Parameters via systemd-boot (kernelstub)",
+                  "when": "",
+                  "index": 5,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware/tasks/main.yml",
+                    "line": 44,
+                    "column": 3
+                  },
+                  "tasks": [
+                    {
+                      "type": "TaskNode",
+                      "id": "task_390df8e5",
+                      "name": "pop_hardware : Verify kernelstub tool is present (Standard Pop!_OS UEFI Bootloader API)",
+                      "when": "",
+                      "index": 1,
+                      "location": {
+                        "type": "file",
+                        "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware/tasks/main.yml",
+                        "line": 47,
+                        "column": 7
+                      },
+                      "notify": []
+                    },
+                    {
+                      "type": "TaskNode",
+                      "id": "task_d0170dfe",
+                      "name": "pop_hardware : Inspect current kernelstub configuration",
+                      "when": "[when: kernelstub_present.rc == 0]",
+                      "index": 2,
+                      "location": {
+                        "type": "file",
+                        "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware/tasks/main.yml",
+                        "line": 53,
+                        "column": 7
+                      },
+                      "notify": []
+                    },
+                    {
+                      "type": "TaskNode",
+                      "id": "task_e934a2d0",
+                      "name": "pop_hardware : Apply NVIDIA DRM Modeset & Quiet Boot Parameters via kernelstub",
+                      "when": "[when: kernelstub_present.rc == 0 and item not in (kernelstub_config.stdout | default(''))]",
+                      "index": 3,
+                      "location": {
+                        "type": "file",
+                        "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_hardware/tasks/main.yml",
+                        "line": 60,
+                        "column": 7
+                      },
+                      "notify": []
+                    }
+                  ]
+                }
+              ],
+              "handlers": [],
+              "include_role": false
+            },
+            {
+              "type": "RoleNode",
+              "id": "role_76c7714a",
+              "name": "pop_cosmic",
+              "when": "",
+              "index": 5,
+              "location": {
+                "type": "folder",
+                "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_cosmic",
+                "line": null,
+                "column": null
+              },
+              "tasks": [
+                {
+                  "type": "TaskNode",
+                  "id": "task_ebc6d53d",
+                  "name": "pop_cosmic : Install Monospace Engineering and UI Fonts",
+                  "when": "",
+                  "index": 1,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_cosmic/tasks/main.yml",
+                    "line": 8,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_3b8c192b",
+                  "name": "pop_cosmic : Ensure Pop!_Shell Tiling Extension and Audio production components are ready",
+                  "when": "",
+                  "index": 2,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_cosmic/tasks/main.yml",
+                    "line": 15,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_ab30d955",
+                  "name": "pop_cosmic : Deploy PAM security limits for low-latency audio engineering (rtprio/memlock)",
+                  "when": "",
+                  "index": 3,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_cosmic/tasks/main.yml",
+                    "line": 22,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_99e73915",
+                  "name": "pop_cosmic : Configure PipeWire real-time threading privileges (rtkit)",
+                  "when": "",
+                  "index": 4,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/pop_cosmic/tasks/main.yml",
+                    "line": 35,
+                    "column": 3
+                  },
+                  "notify": []
+                }
+              ],
+              "handlers": [],
+              "include_role": false
+            },
+            {
+              "type": "RoleNode",
+              "id": "role_869bfae2",
+              "name": "podman_docker",
+              "when": "",
+              "index": 6,
+              "location": {
+                "type": "folder",
+                "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/podman_docker",
+                "line": null,
+                "column": null
+              },
+              "tasks": [
+                {
+                  "type": "TaskNode",
+                  "id": "task_a7d9b26c",
+                  "name": "podman_docker : Install Container Runtimes (Docker & Podman)",
+                  "when": "[when: enable_container_tools | default(true) | bool]",
+                  "index": 1,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/podman_docker/tasks/main.yml",
+                    "line": 8,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_f7f39c4c",
+                  "name": "podman_docker : Enable and start Docker Daemon Service",
+                  "when": "[when: enable_container_tools | default(true) | bool]",
+                  "index": 2,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/podman_docker/tasks/main.yml",
+                    "line": 15,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_8488ea11",
+                  "name": "podman_docker : Ensure target user exists and assign critical hardware/container group memberships",
+                  "when": "[when: enable_container_tools | default(true) | bool]",
+                  "index": 3,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/podman_docker/tasks/main.yml",
+                    "line": 23,
+                    "column": 3
+                  },
+                  "notify": []
+                }
+              ],
+              "handlers": [],
+              "include_role": false
+            },
+            {
+              "type": "RoleNode",
+              "id": "role_1370551d",
+              "name": "yadm_bootstrap",
+              "when": "",
+              "index": 7,
+              "location": {
+                "type": "folder",
+                "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/yadm_bootstrap",
+                "line": null,
+                "column": null
+              },
+              "tasks": [
+                {
+                  "type": "TaskNode",
+                  "id": "task_6b877efc",
+                  "name": "yadm_bootstrap : Verify yadm installation status",
+                  "when": "[when: enable_yadm_bootstrap | default(true) | bool]",
+                  "index": 1,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/yadm_bootstrap/tasks/main.yml",
+                    "line": 8,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_79f40668",
+                  "name": "yadm_bootstrap : Install yadm package via APT if not found",
+                  "when": "[when: enable_yadm_bootstrap | default(true) | bool and yadm_path.rc != 0]",
+                  "index": 2,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/yadm_bootstrap/tasks/main.yml",
+                    "line": 15,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_85a8b772",
+                  "name": "yadm_bootstrap : Check if yadm repository has already been cloned for user",
+                  "when": "[when: enable_yadm_bootstrap | default(true) | bool]",
+                  "index": 3,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/yadm_bootstrap/tasks/main.yml",
+                    "line": 23,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_f2dd6b30",
+                  "name": "yadm_bootstrap : Clone user dotfiles via yadm (Layer 2 User Identity)",
+                  "when": "[when: enable_yadm_bootstrap | default(true) | bool and not yadm_repo_stat.stat.exists and yadm_dotfiles_repo is defined]",
+                  "index": 4,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/yadm_bootstrap/tasks/main.yml",
+                    "line": 30,
+                    "column": 3
+                  },
+                  "notify": []
+                },
+                {
+                  "type": "TaskNode",
+                  "id": "task_4f4a9fb0",
+                  "name": "yadm_bootstrap : Display note regarding Layer 2 declarative tooling",
+                  "when": "[when: enable_yadm_bootstrap | default(true) | bool]",
+                  "index": 5,
+                  "location": {
+                    "type": "file",
+                    "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/roles/yadm_bootstrap/tasks/main.yml",
+                    "line": 40,
+                    "column": 3
+                  },
+                  "notify": []
+                }
+              ],
+              "handlers": [],
+              "include_role": false
+            }
+          ],
+          "tasks": [],
+          "post_tasks": [
+            {
+              "type": "TaskNode",
+              "id": "post_task_6915f01e",
+              "name": "Display completion summary",
+              "when": "",
+              "index": 8,
+              "location": {
+                "type": "file",
+                "path": "/home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/playbooks/workstation.yml",
+                "line": 53,
+                "column": 7
+              },
+              "notify": []
+            }
+          ],
+          "handlers": [],
+          "hosts": [],
+          "colors": {
+            "main": "#6a9f2d",
+            "font": "#ffffff"
+          }
+        }
+      ]
+    }
+  ]
+}
