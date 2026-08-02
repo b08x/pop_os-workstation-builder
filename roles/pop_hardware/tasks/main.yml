@@ -18,7 +18,15 @@
   ansible.builtin.apt:
     name: "{{ pop_os_packages.nvidia_ai_ml }}"
     state: present
-  ignore_errors: true # Avoid hard stop if running on purely Intel/AMD hardware without System76 NVIDIA repos
+  register: pop_hardware_nvidia_install
+  failed_when:
+    - pop_hardware_nvidia_install.rc != 0
+    - >
+      "No matching" not in (pop_hardware_nvidia_install.stderr | default('')) and
+      "Unable to locate" not in (pop_hardware_nvidia_install.stderr | default('')) and
+      "no installation candidate" not in (pop_hardware_nvidia_install.stderr | default(''))
+  # Non-fatal on purely Intel/AMD hardware lacking System76 NVIDIA repos;
+  # real failures (network, disk) still surface
   tags: ["nvidia", "cuda", "aiml"]
 
 - name: Enable & Start System76 Power and Scheduler Daemons

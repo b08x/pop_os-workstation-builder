@@ -32,7 +32,13 @@
       ansible.builtin.apt:
         name: yadm
         state: present
-      ignore_errors: true
+      register: yadm_apt_install
+      failed_when:
+        - yadm_apt_install.rc != 0
+        - >
+          "Unable to locate" not in (yadm_apt_install.stderr | default('')) and
+          "has no installation candidate" not in (yadm_apt_install.stderr | default(''))
+      # Non-fatal: yadm_bootstrap role handles fallback installation
 
     - name: Display instructions to run master playbook
       ansible.builtin.debug:

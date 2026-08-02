@@ -38,5 +38,9 @@
     name: rtkit-daemon.service
     enabled: true
     state: started
-  ignore_errors: true
+  register: pop_cosmic_rtkit_start
+  failed_when:
+    - pop_cosmic_rtkit_start.rc != 0
+    - "'could not be found' not in (pop_cosmic_rtkit_start.msg | default(''))"
+  # Expected failure if rtkit not installed; real service errors still surface
   tags: ["pipewire", "audio", "rtkit"]

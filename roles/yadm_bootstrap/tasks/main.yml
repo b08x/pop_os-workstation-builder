@@ -34,8 +34,23 @@
   args:
     creates: "{{ ansible_env.HOME }}/.local/share/yadm/repo.git"
   register: yadm_clone
-  ignore_errors: true # May require interactive SSH passphrase or token on first run
+  failed_when: false
+  # Expected failure: SSH passphrase prompt, missing deploy key, or network timeout.
+  # The debug task below surfaces the outcome; idempotency is handled by 'creates:'.
   tags: ["yadm", "clone", "bootstrap"]
+
+- name: Warn if yadm clone did not succeed
+  when:
+    - yadm_clone is defined
+    - yadm_clone.rc is defined
+    - yadm_clone.rc != 0
+  ansible.builtin.debug:
+    msg: |
+      WARNING: yadm clone returned rc={{ yadm_clone.rc }}.
+      This is expected on first run if SSH keys are not yet configured.
+      {{ yadm_clone.stderr | default('') | truncate(200) }}
+      Re-run this role after configuring SSH access to your dotfiles repo.
+  tags: ["yadm", "clone", "warning"]
 
 - name: Display note regarding Layer 2 declarative tooling
   ansible.builtin.debug:
