@@ -130,7 +130,7 @@ pop_os_packages:
 
 ## Engineering Roadmap
 
-The future evolution of `pop_os-workstation-builder` is structured around enhancing autonomous validation, supporting System76's emerging Rust desktop architecture, and modularizing edge deployments.
+The future evolution of `pop_os-workstation-builder` is structured around enhancing autonomous validation, supporting System76's emerging Rust desktop architecture, and mitigating systemic risks discovered during forensic machine audits.
 
 ### Milestone 1: COSMIC Desktop Transition (Q3 2026)
 - [ ] **COSMIC Epoch Support**: Upgrade UI roles to officially configure System76's Rust-based COSMIC Desktop Environment as it reaches general production readiness, gracefully replacing legacy GNOME Pop!_Shell extensions.
@@ -147,6 +147,20 @@ The future evolution of `pop_os-workstation-builder` is structured around enhanc
 ### Milestone 4: Telemetry & Latency Profiling
 - [ ] **Real-time Kernel Benchmarking**: Build optional diagnostic tasks to test pipewire latency and CPU core C-states under System76 audio scheduling rules.
 - [ ] **Callback Analytics Plugin**: Adapt custom LLM-assisted structural callback summary plugins to analyze timing execution bottlenecks during local playbook provisioning.
+
+### Milestone 5: Out-of-Tree (`@commandline`) Package Preservation Engine
+- [ ] **Debian Package Cache Archival**: Build an automated preservation task (`roles/deb_archive`) that detects loose `.deb` packages or AppImages installed outside standard APT repositories (e.g., downloaded build artifacts for tools like `hermes-desktop`, `Multica`, and `trackboi`).
+- [ ] **Automated Rebuild Manifest Generation**: Emit machine-readable system snapshots capturing local hardware driver verifiers and package origins before performing workstation refreshes.
+
+### Milestone 6: Pre-Refresh Forensic Audit Suite
+- [ ] **Git Work-at-Risk Detection Playbook**: Develop an operational audit playbook (`playbooks/audit-refresh.yml`) that scans user workspaces (`WorkspaceV3`, `StudioV2`) prior to wiping, alerting on dirty working trees, uncommitted stashes, and repositories lacking remotes.
+- [ ] **Automated Backup Exclusions Generator**: Dynamically compile exclusion rules for tools like `deja-dup` or `restic` to bypass ~110 GB of regenerable cache directories (`node_modules`, `.venv`, `.cache`, `.hermes/state-snapshots`).
+
+### Milestone 7: Containerized AI/ML Runtime Harmonization
+- [ ] **Container-First ML Pipeline Standard**: Eliminate system library collisions and multi-gigabyte storage duplication (e.g., overlapping CUDA bindings across host systems and Python venvs) by routing PyTorch, spaCy large NLP models, and `onnxruntime` workloads strictly through Podman/Docker containers utilizing `nvidia-container-toolkit`.
+
+### Milestone 8: Mandatory Access Control (AppArmor Harmonization)
+- [ ] **AppArmor Real-Time Profiling**: Replace permissive MAC fallbacks with validated AppArmor profiles in `roles/pop_base`, ensuring container audio UNIX domain sockets (`pipewire-0`) and AI IPC sockets operate securely without silent kernel permission denials.
 
 ---
 
