@@ -28,6 +28,7 @@
       - docker
       - audio
       - video
+      - render
       - sudo
     append: true
   tags: ["groups", "permissions", "users"]

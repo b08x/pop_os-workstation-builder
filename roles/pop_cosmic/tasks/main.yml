@@ -19,6 +19,19 @@
     state: present
   tags: ["audio", "pipewire", "media"]
 
+- name: Deploy PAM security limits for low-latency audio engineering (rtprio/memlock)
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/security/limits.d/99-pipewire-realtime.conf
+    content: |
+      # Low-latency audio permissions for user groups
+      @audio    - rtprio  95
+      @audio    - memlock unlimited
+      @realtime - rtprio  95
+      @realtime - memlock unlimited
+    mode: "0644"
+  tags: ["pipewire", "audio", "limits"]
+
 - name: Configure PipeWire real-time threading privileges (rtkit)
   become: true
   ansible.builtin.systemd:

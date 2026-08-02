@@ -50,11 +50,20 @@
       changed_when: false
       failed_when: false
 
-    - name: Apply NVIDIA DRM Modeset & Quiet Boot Parameters via kernelstub
+    - name: Inspect current kernelstub configuration
       when: kernelstub_present.rc == 0
+      ansible.builtin.command: "kernelstub --print-config"
+      register: kernelstub_config
+      changed_when: false
+      failed_when: false
+
+    - name: Apply NVIDIA DRM Modeset & Quiet Boot Parameters via kernelstub
+      when:
+        - kernelstub_present.rc == 0
+        - item not in (kernelstub_config.stdout | default(''))
       ansible.builtin.command: 'kernelstub --add-options "{{ item }}"'
       register: kernelstub_exec
-      changed_when: "'No changes made' not in kernelstub_exec.stdout and 'already present' not in kernelstub_exec.stdout|lower"
+      changed_when: true
       loop:
         - "nvidia-drm.modeset=1"
         - "quiet"

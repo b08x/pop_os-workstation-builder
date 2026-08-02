@@ -7,10 +7,8 @@
 
 - name: Set System Timezone to UTC or user preference
   become: true
-  ansible.builtin.command: "timedatectl set-timezone {{ timezone | default('America/New_York') }}"
-  register: timezone_result
-  changed_when: timezone_result.rc == 0
-  failed_when: false
+  ansible.builtin.timezone:
+    name: "{{ timezone | default('America/New_York') }}"
   tags: ["timezone", "base"]
 
 - name: Disable Core Dumps to save storage and prevent PII leakage in crash traces
