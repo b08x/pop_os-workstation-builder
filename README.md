@@ -1,10 +1,18 @@
 # Pop!_OS Workstation Builder
 
-**A declarative, zero-touch provisioning engine for Pop!_OS and System76 hardware built on strict 3-layer state governance.**
+**An Ansible role repository for configuring a fresh Pop!_OS installation, built as an exercise in agentic coding workflows.**
 
-Most developer workstation setup scripts degrade into untamable complexity. Over months of installing AI frameworks, Node utilities, and system tools, your root filesystem swells with dozens of gigabytes of conflicting global packages (`npm -g`, `pip --user`, `bun -g`). When upgrading or refreshing a machine, reproducing that environment requires hours of hunting down unpinned dependencies and broken configurations.
+This project was assembled using agentic coding tools — [Hermes Agent](https://hermes-agent.nousresearch.com), Claude Code, [Agy](https://github.com/nicobailey/agy), [Crush](https://github.com/nicobailey/crush), and [OpenCode](https://github.com/nicobailey/opencode) — to explore how AI-assisted development can accelerate infrastructure-as-code authoring. The result is a working collection of Ansible roles that turns a clean Pop!_OS installation into a configured engineering workstation in a single command.
 
-This project fixes workstation bloat by separating machine provisioning into three distinct boundaries: immutable root system packages, encrypted user identity, and per-project isolated environments. By leveraging System76's native system daemons (`system76-power`, `kernelstub`) and APT package taxonomies, this collection turns a clean Pop!_OS installation into a fully configured AI engineering workstation in a single command.
+The repository itself is the artifact. The process of building it — iterating on role structure, debugging idempotency, refining variable taxonomies, and reviewing best practices through an AI agent — is the point.
+
+---
+
+## What This Repository Does
+
+Most developer workstation setup scripts degrade into untamable complexity. Over months of installing AI frameworks, Node utilities, and system tools, your root filesystem swells with dozens of gigabytes of conflicting global packages. When upgrading or refreshing a machine, reproducing that environment requires hours of hunting down unpinned dependencies and broken configurations.
+
+This project fixes workstation bloat by separating machine provisioning into three distinct boundaries: immutable root system packages, encrypted user identity, and per-project isolated environments. By leveraging System76's native system daemons (`system76-power`, `kernelstub`) and APT package taxonomies, this collection turns a clean Pop!_OS installation into a fully configured AI engineering workstation.
 
 ---
 
@@ -26,11 +34,12 @@ To guarantee long-term reproducibility and eliminate root filesystem entropy, ev
 ```
 
 ### Why This Boundary Matters
+
 - **Layer 1 (Ansible / Root)** owns only what requires superuser privileges and remains identical across all users of the operating system: system APT packages, container daemons, audio infrastructure (PipeWire/rtkit), and hardware drivers.
 - **Layer 2 (`yadm` / User Home)** owns everything under `$HOME` that encodes your personal workflows, API keys, and shell preferences. Declarative manifests (`uv-tools.txt`, `npm-global.txt`) install developer CLI tools completely within user space.
 - **Layer 3 (Project Repositories)** owns complex machine learning and web runtimes (e.g., PyTorch, CUDA bindings, Node frameworks). These never touch the OS or home directories; they are instantiated per-repository using modern fast resolvers like `uv` or `bun`.
 
-> **Architectural Rule**: This Ansible collection will never execute root-level shell pipings (`curl | bash`), install global Node/Python packages, or touch user profile dotfiles directly. Its solely responsible for Layer 1 preparation and executing the Layer 2 handoff.
+> **Architectural Rule**: This Ansible collection will never execute root-level shell pipings (`curl | bash`), install global Node/Python packages, or touch user profile dotfiles directly. It is solely responsible for Layer 1 preparation and executing the Layer 2 handoff.
 
 ---
 
@@ -50,11 +59,13 @@ If you are migrating from RHEL, Fedora, or traditional enterprise Ansible setups
 ## Quickstart Guide
 
 ### Prerequisites
+
 - A baseline installation of **Pop!_OS** (22.04 LTS, 24.04 LTS, or rolling upgrades), Ubuntu LTS, or compatible Debian derivative.
 - Administrative (`sudo`) user access.
 - An internet connection to fetch APT repositories and user dotfiles.
 
 ### Step 1: Bootstrap from Bare Metal
+
 Open a fresh terminal session on your newly installed machine. Run the quickstart sequence to pull minimal toolchains (`git`, `ansible`, `zsh`, `yadm`) and prepare the workspace:
 
 ```bash
@@ -70,6 +81,7 @@ ansible-playbook -i inventory/hosts.ini playbooks/bootstrap.yml --ask-become-pas
 ```
 
 ### Step 2: Provision the Master Workstation
+
 Once bootstrapped, kick off the comprehensive configuration engine. This applies kernel boot flags, installs daemons, optimizes APT, deploys container virtualization, and executes the `yadm` dotfiles handoff:
 
 ```bash
@@ -78,6 +90,7 @@ ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml --ask-become-p
 ```
 
 ### Step 3: Verification & Dry-Run
+
 Because this collection is fully idempotent, you can re-run it at any time without side effects. To audit impending systemic changes before executing, utilize Ansible's dry-run diff mode:
 
 ```bash
@@ -110,7 +123,7 @@ pop_os-workstation-builder/
 
 ## Customizing Package Taxonomies
 
-All system-level software installations are governed centrally by [vars/pop_os_packages.yml](file:///home/b08x/WorkspaceV3/Syncopated/pop_os-workstation-builder/vars/pop_os_packages.yml). To add system libraries or compiler toolchains to future provisions, append the desired deb package titles directly to the relevant structural categories:
+All system-level software installations are governed centrally by [vars/pop_os_packages.yml](vars/pop_os_packages.yml). To add system libraries or compiler toolchains to future provisions, append the desired deb package titles directly to the relevant structural categories:
 
 ```yaml
 pop_os_packages:
@@ -128,38 +141,70 @@ pop_os_packages:
 
 ---
 
+## How This Was Built: Agentic Coding Workflow
+
+This repository was developed collaboratively with AI coding agents. The workflow looked like this:
+
+1. **Scaffolding**: The initial role structure, inventory, and playbook skeleton were generated by an agent given a description of the target system (Pop!_OS + System76 hardware + AI/ML workstation use case).
+
+2. **Iterative Refinement**: Roles were debugged and improved through agent-assisted review cycles — checking idempotency patterns, verifying module usage against Ansible best practices, and restructuring tasks for clarity.
+
+3. **Best-Practice Audit**: The agent compared the project against RHCE study guide frameworks and Tim Appnel's role design principles, identifying gaps (missing `defaults/`, broad `ignore_errors`, incomplete role scaffolding) and proposing fixes.
+
+4. **Documentation**: The README, inline comments, and variable taxonomy descriptions were written and refined through the same agentic workflow.
+
+The tools used:
+
+| Tool | Role in This Project |
+| :--- | :--- |
+| **Hermes Agent** | Primary orchestrator — role authoring, best-practice review, documentation generation |
+| **Claude Code** | Deep reasoning on Ansible module selection, idempotency verification |
+| **Agy** | Task decomposition and parallel role development |
+| **Crush** | Quick edits, YAML formatting, syntax validation |
+| **OpenCode** | Exploration of System76-specific tooling APIs (kernelstub, system76-power) |
+
+---
+
 ## Engineering Roadmap
 
 The future evolution of `pop_os-workstation-builder` is structured around enhancing autonomous validation, supporting System76's emerging Rust desktop architecture, and mitigating systemic risks discovered during forensic machine audits.
 
 ### Milestone 1: COSMIC Desktop Transition (Q3 2026)
+
 - [ ] **COSMIC Epoch Support**: Upgrade UI roles to officially configure System76's Rust-based COSMIC Desktop Environment as it reaches general production readiness, gracefully replacing legacy GNOME Pop!_Shell extensions.
 - [ ] **Declarative Wayland Keybindings**: Integrate programmatic binding definitions for window tiling and workspace manipulation directly into COSMIC configuration schemas.
 
 ### Milestone 2: Automated Testing & Continuous Integration
+
 - [ ] **GitHub Actions Infrastructure**: Implement continuous validation using linting (`ansible-lint`, `yamllint`) and automated testing against ephemeral Ubuntu/Debian container matrices.
 - [ ] **Idempotency Assurance Engine**: Automated assertions ensuring back-to-back runs of `workstation.yml` produce zero changed states (`changed=0, unreachable=0, failed=0`).
 
 ### Milestone 3: Advanced AI Workstation Profiles
+
 - [ ] **Modular GPU Acceleration Switching**: Add prompt-driven or inventory-controlled feature toggles between native NVIDIA CUDA profiles and modern OpenCL/AMD ROCm compute arrays.
 - [ ] **Local LLM Server Primitives**: Create an optional `ollama_service` role capable of standing up locally hosted inference engines wrapped with GPU access rights in Layer 1.
 
 ### Milestone 4: Telemetry & Latency Profiling
+
 - [ ] **Real-time Kernel Benchmarking**: Build optional diagnostic tasks to test pipewire latency and CPU core C-states under System76 audio scheduling rules.
 - [ ] **Callback Analytics Plugin**: Adapt custom LLM-assisted structural callback summary plugins to analyze timing execution bottlenecks during local playbook provisioning.
 
 ### Milestone 5: Out-of-Tree (`@commandline`) Package Preservation Engine
+
 - [ ] **Debian Package Cache Archival**: Build an automated preservation task (`roles/deb_archive`) that detects loose `.deb` packages or AppImages installed outside standard APT repositories (e.g., downloaded build artifacts for tools like `hermes-desktop`, `Multica`, and `trackboi`).
 - [ ] **Automated Rebuild Manifest Generation**: Emit machine-readable system snapshots capturing local hardware driver verifiers and package origins before performing workstation refreshes.
 
 ### Milestone 6: Pre-Refresh Forensic Audit Suite
+
 - [ ] **Git Work-at-Risk Detection Playbook**: Develop an operational audit playbook (`playbooks/audit-refresh.yml`) that scans user workspaces (`WorkspaceV3`, `StudioV2`) prior to wiping, alerting on dirty working trees, uncommitted stashes, and repositories lacking remotes.
 - [ ] **Automated Backup Exclusions Generator**: Dynamically compile exclusion rules for tools like `deja-dup` or `restic` to bypass ~110 GB of regenerable cache directories (`node_modules`, `.venv`, `.cache`, `.hermes/state-snapshots`).
 
 ### Milestone 7: Containerized AI/ML Runtime Harmonization
+
 - [ ] **Container-First ML Pipeline Standard**: Eliminate system library collisions and multi-gigabyte storage duplication (e.g., overlapping CUDA bindings across host systems and Python venvs) by routing PyTorch, spaCy large NLP models, and `onnxruntime` workloads strictly through Podman/Docker containers utilizing `nvidia-container-toolkit`.
 
 ### Milestone 8: Mandatory Access Control (AppArmor Harmonization)
+
 - [ ] **AppArmor Real-Time Profiling**: Replace permissive MAC fallbacks with validated AppArmor profiles in `roles/pop_base`, ensuring container audio UNIX domain sockets (`pipewire-0`) and AI IPC sockets operate securely without silent kernel permission denials.
 
 ---
