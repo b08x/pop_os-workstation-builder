@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: MIT-0
+---
+argument_specs:
+  main:
+    short_description: Core system configuration for a Pop!_OS workstation.
+    description:
+      - Sets the timezone, applies APT tuning, optionally disables core dumps,
+        and installs the Layer 1 CLI toolchain.
+    options:
+      base_timezone:
+        type: str
+        required: false
+        default: America/New_York
+        description: IANA timezone name applied via the timezone module.
+      base_disable_coredumps:
+        type: bool
+        required: false
+        default: true
+        description: Write a systemd coredump drop-in setting Storage=none.
+      base_apt_upgrade:
+        type: str
+        required: false
+        default: dist
+        choices: ["dist", "full", "safe", "yes", "no"]
+        description: Upgrade mode handed to ansible.builtin.apt.
+      base_apt_cache_valid_time:
+        type: int
+        required: false
+        default: 3600
+        description: Seconds before the APT cache is considered stale.
+      base_apt_install_recommends:
+        type: bool
+        required: false
+        default: true
+        description: Value for APT::Install-Recommends. Desktop stability wants this true.
+      base_apt_install_suggests:
+        type: bool
+        required: false
+        default: false
+        description: Value for APT::Install-Suggests.
+      base_apt_pipeline_depth:
+        type: int
+        required: false
+        default: 5
+        description: Value for Acquire::http::Pipeline-Depth.
+      base_packages:
+        type: list
+        elements: str
+        required: false
+        description: APT packages installed at system scope.

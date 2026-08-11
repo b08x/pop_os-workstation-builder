@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: MIT-0
+---
+argument_specs:
+  main:
+    short_description: Install yadm and clone the user's dotfiles.
+    description:
+      - Layer 1 stops here. Everything under $HOME, including user-scope CLI
+        tools, is the responsibility of the yadm bootstrap script.
+    options:
+      dotfiles_user:
+        type: str
+        required: true
+        description: Login name owning the dotfiles.
+      dotfiles_manage:
+        type: bool
+        required: false
+        default: true
+        description: Install yadm and attempt the clone.
+      dotfiles_repo:
+        type: str
+        required: false
+        default: ""
+        description: yadm repository URL. Empty skips the clone.
+      dotfiles_run_bootstrap:
+        type: bool
+        required: false
+        default: true
+        description: Pass --bootstrap to yadm clone.
+      dotfiles_require_clone:
+        type: bool
+        required: false
+        default: false
+        description:
+          - Fail the play when the clone does not succeed.
+          - Leave false for first runs, where no SSH key exists yet.
+      dotfiles_packages:
+        type: list
+        elements: str
+        required: false
+        description: APT packages providing yadm.

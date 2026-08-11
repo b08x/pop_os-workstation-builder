@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: MIT-0
+---
+argument_specs:
+  main:
+    short_description: System76 hardware enablement and boot parameters.
+    description:
+      - Installs System76 daemons and the vendor NVIDIA driver, sets the
+        hybrid graphics profile, and manages kernel arguments via kernelstub.
+      - Host CUDA is off by default; use a container instead.
+    options:
+      hardware_install_system76:
+        type: bool
+        required: false
+        default: true
+        description: Install System76 vendor packages. Set false on non-System76 hardware.
+      hardware_system76_packages:
+        type: list
+        elements: str
+        required: false
+        description: System76 vendor APT packages.
+      hardware_system76_services:
+        type: list
+        elements: str
+        required: false
+        description: System76 systemd units to enable, if present after install.
+      hardware_install_nvidia:
+        type: bool
+        required: false
+        default: true
+        description: Install the vendor NVIDIA driver and container toolkit.
+      hardware_user:
+        type: str
+        required: false
+        description: Login name added to the firmware admin group.
+      hardware_mask_power_profiles_daemon:
+        type: bool
+        required: false
+        default: true
+        description:
+          - Mask power-profiles-daemon so system76-power can start.
+          - GNOME installs it by default and the two conflict.
+      hardware_firmware_admin_group:
+        type: str
+        required: false
+        default: adm
+        description: Group the System76 firmware daemon requires for its callers.
+      hardware_graphics_mode:
+        type: str
+        required: false
+        default: hybrid
+        choices: [integrated, nvidia, hybrid, compute]
+        description:
+          - Graphics profile applied via system76-power.
+          - COSMIC is designed around hybrid and has no graphical switcher.
+      hardware_nvidia_packages:
+        type: list
+        elements: str
+        required: false
+        description: NVIDIA driver packages. Keep this to a single source.
+      hardware_nvidia_container_packages:
+        type: list
+        elements: str
+        required: false
+        description: Packages granting containers access to the GPU.
+      hardware_install_host_cuda:
+        type: bool
+        required: false
+        default: false
+        description:
+          - Install the CUDA toolkit onto the host filesystem.
+          - Off by default. See docs/forensics/FORENSICS-REPORT.md sections 3.2 and 8.3.
+      hardware_host_cuda_packages:
+        type: list
+        elements: str
+        required: false
+        description: Host CUDA packages, used only when hardware_install_host_cuda is true.
+      hardware_manage_kernel_params:
+        type: bool
+        required: false
+        default: true
+        description: Manage kernel arguments through kernelstub.
+      hardware_kernel_params:
+        type: list
+        elements: str
+        required: false
+        description: Kernel arguments to ensure are present in the boot entry.

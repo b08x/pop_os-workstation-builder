@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role defaults: hardware
+# System76 daemons, GPU driver, and systemd-boot kernel parameters.
+#
+# Sourced from System76 support docs:
+#   https://system76.com/support/articles/system76-driver
+#   https://system76.com/support/articles/graphics-switch-pop
+#   https://system76.com/support/articles/system76-software
+#   https://system76.com/support/articles/cuda
+# ============================================================================
+
+hardware_install_system76: true
+
+# Pop!_OS ships the System76 repository and these packages by default, so on a
+# stock Pop install every one of these is already present and the role is a
+# no-op. The list matters when running against plain Ubuntu, or after someone
+# has removed something by hand.
+hardware_system76_packages:
+  - pop-desktop
+  - system76-driver
+  - system76-power
+  - system76-scheduler
+  - system76-firmware
+  - system76-firmware-daemon
+  - firmware-manager
+  - linux-system76
+
+hardware_system76_services:
+  - system76-power.service
+  - system76-scheduler.service
+  - system76-firmware-daemon.service
+
+# system76-power cannot start while power-profiles-daemon holds the same D-Bus
+# territory. GNOME installs power-profiles-daemon by default, and the symptom
+# is com.system76.PowerDaemon.service staying dead despite being enabled.
+# System76 support prescribes masking it.
+hardware_mask_power_profiles_daemon: true
+
+# The firmware daemon requires the invoking user to be in `adm`.
+hardware_firmware_admin_group: adm
+
+# --- GPU -------------------------------------------------------------------
+hardware_install_nvidia: true
+
+# COSMIC is designed to run in hybrid mode and offers no graphical switcher.
+# Valid: integrated | nvidia | hybrid | compute
+hardware_graphics_mode: hybrid
+
+# System76 packages and validates the proprietary driver against their kernel.
+# Do NOT add nvidia-driver-<NNN> here: that is a second, competing source for
+# the same driver and reproduces the dual-source trap documented in
+# docs/forensics/FORENSICS-REPORT.md section 2.3.
+hardware_nvidia_packages:
+  - system76-driver-nvidia
+
+# Container-side GPU access. This is the supported path for CUDA workloads.
+hardware_nvidia_container_packages:
+  - nvidia-container-toolkit
+  - libnvidia-container-tools
+
+# Host CUDA toolkit. Default OFF, deliberately, for two reasons:
+#
+#   1. System76: "Basic CUDA runtime functionality is installed automatically
+#      with the NVIDIA driver (in the libnvidia-compute-* and
+#      nvidia-compute-utils-* packages)." Check the ceiling with nvidia-smi.
+#      They also warn nvidia-cuda-toolkit is Ubuntu-maintained and often lags
+#      the version the driver actually supports.
+#   2. FORENSICS sections 3.2 and 8.3: a host CUDA install plus pip --user
+#      produced ~21 GB of overlapping runtime on the Fedora machine.
+#
+# Need a specific toolkit version? Use an nvidia/cuda container image with
+# nvidia-container-toolkit rather than flipping this on.
+hardware_install_host_cuda: false
+hardware_host_cuda_packages:
+  - nvidia-cuda-toolkit
+
+# --- Boot ------------------------------------------------------------------
+# Pop!_OS is systemd-boot on UEFI; kernel args go through kernelstub, not GRUB.
+hardware_manage_kernel_params: true
+hardware_kernel_params:
+  - "nvidia-drm.modeset=1"
+  - "quiet"
+  - "loglevel=3"
+
+# System76's CUDA article adds systemd.unified_cgroup_hierarchy=0 for the
+# Docker + NVIDIA Container Toolkit path. That forces the system back to
+# cgroups v1, which breaks rootless Podman resource limits on noble. Left out
+# on purpose. Add it here only if you commit to Docker as the GPU runtime.

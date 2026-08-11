@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role defaults: desktop
+# Fonts, PipeWire audio stack, and real-time scheduling limits.
+# ============================================================================
+
+desktop_install_fonts: true
+desktop_font_packages:
+  - fonts-firacode
+  - fonts-cascadia-code
+  - fonts-noto-color-emoji
+  - fonts-inter
+
+desktop_install_audio: true
+desktop_audio_packages:
+  - pipewire
+  - pipewire-pulse
+  - pipewire-jack
+  - wireplumber
+  - rtkit
+  - ffmpeg
+  - libsndfile1-dev
+  - sox
+
+# Real-time scheduling for low-latency audio work.
+# rtprio 95 leaves headroom below the kernel watchdog at 99.
+desktop_enable_realtime_audio: true
+desktop_realtime_groups:
+  - audio
+  - realtime
+desktop_realtime_rtprio: 95
+desktop_realtime_nice: -19

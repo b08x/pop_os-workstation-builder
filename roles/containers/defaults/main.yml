@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role defaults: containers
+# Podman-first. Docker is opt-in.
+# ============================================================================
+
+# Podman is the default runtime: rootless by design, no daemon, no second
+# storage pool. FORENSICS section 7.3 flagged running both on the Fedora box as
+# duplicated infrastructure nobody had decided to keep.
+containers_install_podman: true
+containers_podman_packages:
+  - podman
+  - podman-compose
+  - buildah
+  - skopeo
+  - uidmap
+  - slirp4netns
+  - fuse-overlayfs
+  - dbus-user-session
+
+# Docker adds a root daemon, a systemd socket, and its own storage pool.
+# Turn this on only if a specific tool needs the Docker socket.
+containers_install_docker: false
+containers_docker_packages:
+  - docker.io
+  - docker-compose-v2
+
+# Enable lingering so rootless Podman units survive logout.
+containers_enable_lingering: true
+
+# Hardware access groups. `docker` is appended only when Docker is installed --
+# membership in that group is root-equivalent, so it should not be handed out
+# by default.
+containers_user_groups:
+  - audio
+  - video
+  - render

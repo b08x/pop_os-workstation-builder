@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: MIT-0
+---
+argument_specs:
+  main:
+    short_description: Desktop fonts and the low-latency audio stack.
+    options:
+      desktop_install_fonts:
+        type: bool
+        required: false
+        default: true
+        description: Install the font set.
+      desktop_font_packages:
+        type: list
+        elements: str
+        required: false
+        description: Font APT packages.
+      desktop_install_audio:
+        type: bool
+        required: false
+        default: true
+        description: Install PipeWire and media tooling.
+      desktop_audio_packages:
+        type: list
+        elements: str
+        required: false
+        description: Audio and media APT packages.
+      desktop_enable_realtime_audio:
+        type: bool
+        required: false
+        default: true
+        description: Deploy PAM limits and enable rtkit for real-time scheduling.
+      desktop_realtime_groups:
+        type: list
+        elements: str
+        required: false
+        description: POSIX groups granted real-time priority.
+      desktop_realtime_rtprio:
+        type: int
+        required: false
+        default: 95
+        description: Maximum real-time priority. Keep below 99.
+      desktop_realtime_nice:
+        type: int
+        required: false
+        default: -19
+        description: Minimum nice value for the real-time groups.

@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  role_name: hardware
+  namespace: b08x
+  author: b08x
+  description: System76 daemons, NVIDIA driver, hybrid graphics, and kernelstub boot parameters.
+  license: MIT-0
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [popos, system76, nvidia, kernelstub, hardware]
+
+dependencies: []

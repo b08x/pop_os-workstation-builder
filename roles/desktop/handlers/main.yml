@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: MIT-0
+---
+- name: Rebuild the font cache
+  become: true
+  ansible.builtin.command:
+    argv: [fc-cache, -f]
+  changed_when: true
+  listen: desktop refresh font cache

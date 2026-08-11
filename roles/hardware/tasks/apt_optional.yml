@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Install only those packages in `optional_packages` that APT can actually
+# resolve on this host.
+#
+# Why this exists: the previous implementation used
+#     failed_when: result.rc != 0 and "Unable to locate" not in result.stderr
+# on ansible.builtin.apt. The apt module does not return `rc`, so that
+# expression evaluated against an undefined attribute and the guard never
+# worked as written. Worse, matching on stderr text also swallows genuine
+# failures such as a held package or a dpkg lock.
+#
+# Checking availability first keeps real errors fatal while letting
+# hardware-specific packages be absent without ceremony.
+# ============================================================================
+
+- name: "Query APT for install candidates ({{ optional_description | default('optional packages') }})"
+  ansible.builtin.command:
+    argv:
+      - apt-cache
+      - policy
+      - "{{ item }}"
+  register: hardware_apt_policy
+  changed_when: false
+  loop: "{{ optional_packages }}"
+
+- name: "Install resolvable packages ({{ optional_description | default('optional packages') }})"
+  when: hardware_apt_resolvable | length > 0
+  become: true
+  ansible.builtin.apt:
+    name: "{{ hardware_apt_resolvable }}"
+    state: present
+  vars:
+    hardware_apt_resolvable: >-
+      {{ hardware_apt_policy.results
+         | selectattr('stdout', 'search', 'Candidate:')
+         | rejectattr('stdout', 'search', 'Candidate: \(none\)')
+         | map(attribute='item')
+         | list }}
+
+- name: "Report packages APT could not resolve ({{ optional_description | default('optional packages') }})"
+  when: hardware_apt_missing | length > 0
+  ansible.builtin.debug:
+    msg: >-
+      Skipped, no install candidate on this host:
+      {{ hardware_apt_missing | join(', ') }}
+  vars:
+    hardware_apt_missing: >-
+      {{ hardware_apt_policy.results
+         | rejectattr('stdout', 'search', 'Candidate: [^(]')
+         | map(attribute='item')
+         | list }}

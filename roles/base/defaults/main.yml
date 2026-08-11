@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role defaults: base
+# Layer 1 only. Nothing here may touch $HOME or install a language runtime.
+# ============================================================================
+
+base_timezone: "America/New_York"
+
+# Disable core dumps: saves storage and keeps PII out of crash traces.
+base_disable_coredumps: true
+
+# Passed to ansible.builtin.apt `upgrade:`. Use "no" to skip the upgrade pass.
+base_apt_upgrade: "dist"
+base_apt_cache_valid_time: 3600
+
+# Written to /etc/apt/apt.conf.d/99-workstation-optimizations
+base_apt_install_recommends: true
+base_apt_install_suggests: false
+base_apt_pipeline_depth: 5
+
+# System-scope CLI and build toolchain. Anything a *user* wants belongs in
+# yadm-managed manifests (Layer 2), not here.
+base_packages:
+  - apt-transport-https
+  - build-essential
+  - ca-certificates
+  - curl
+  - git
+  - git-lfs
+  - gnupg
+  - htop
+  - jq
+  - lsb-release
+  - make
+  - openssh-client
+  - pkg-config
+  - software-properties-common
+  - stow
+  - tmux
+  - tree
+  - unzip
+  - wget
+  - zip
+  - zsh

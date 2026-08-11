@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: MIT-0
+---
+argument_specs:
+  main:
+    short_description: Container runtimes and hardware group membership.
+    description:
+      - Installs Podman by default. Docker is opt-in because it adds a root
+        daemon and a second storage pool.
+    options:
+      containers_user:
+        type: str
+        required: true
+        description: Login name receiving group membership and lingering.
+      containers_install_podman:
+        type: bool
+        required: false
+        default: true
+        description: Install the Podman toolchain.
+      containers_podman_packages:
+        type: list
+        elements: str
+        required: false
+        description: Podman APT packages.
+      containers_install_docker:
+        type: bool
+        required: false
+        default: false
+        description: Install Docker. Adds the user to the root-equivalent docker group.
+      containers_docker_packages:
+        type: list
+        elements: str
+        required: false
+        description: Docker APT packages.
+      containers_enable_lingering:
+        type: bool
+        required: false
+        default: true
+        description: Enable systemd lingering so rootless units survive logout.
+      containers_user_groups:
+        type: list
+        elements: str
+        required: false
+        description: Supplementary groups for hardware access.
