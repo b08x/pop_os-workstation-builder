@@ -1,6 +1,6 @@
-# Pop!_OS Workstation Builder
+# Pop!_OS Workstation Builder — `b08x.workstation`
 
-**An Ansible role repository for configuring a fresh Pop!_OS installation, built as an exercise in agentic coding workflows.**
+**An Ansible collection for configuring a fresh Pop!_OS installation, built as an exercise in agentic coding workflows.**
 
 This project was assembled using agentic coding tools — [Hermes Agent](https://hermes-agent.nousresearch.com), Claude Code, [Agy](https://github.com/nicobailey/agy), [Crush](https://github.com/nicobailey/crush), and [OpenCode](https://github.com/nicobailey/opencode) — to explore how AI-assisted development can accelerate infrastructure-as-code authoring. The result is a working collection of Ansible roles that turns a clean Pop!_OS installation into a configured engineering workstation in a single command.
 
@@ -102,42 +102,71 @@ ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml --diff --check
 ## Repository Anatomy
 
 ```
-pop_os-workstation-builder/
-├── ansible.cfg                      # Optimized SSH pipelining & JSON fact caching
+pop_os-workstation-builder/            # collection root: b08x.workstation
+├── galaxy.yml                         # collection metadata and dependencies
+├── meta/runtime.yml                   # requires_ansible, action groups
+├── ansible.cfg                        # SSH pipelining, JSON fact caching
+├── changelogs/changelog.yaml
+├── docs/
+│   └── forensics/                     # pre-refresh audit of the Fedora machine
+│       ├── FORENSICS-REPORT.md        # the baseline these defaults argue with
+│       ├── ANSIBLE-YADM-SPLIT.md      # per-item layer assignment
+│       ├── SPLIT-PLAN.md              # repo-split dependency analysis
+│       ├── REFRESH.md                 # Fedora to Pop migration checklist
+│       ├── GITHUB-ACTIVITY.md         # 219-repo wipe-loss survey
+│       └── WORKSTATION-ACTIVITY.md    # six months of agent and shell telemetry
 ├── inventory/
-│   └── hosts.ini                    # Direct localhost target with user customizations
+│   ├── hosts.ini
+│   ├── group_vars/workstations.yml    # workstation_user and deliberate overrides
+│   └── host_vars/popvm.yml            # test-VM overrides
 ├── playbooks/
-│   ├── bootstrap.yml                # Entrypoint: Minimal system readiness and yadm installer
-│   └── workstation.yml              # Master orchestration sequence across all system roles
-├── roles/
-│   ├── pop_base/                    # Timezone, APT non-interactive caching, core dumps disable
-│   ├── pop_hardware/                # system76-driver daemons & kernelstub EFIVAR management
-│   ├── pop_cosmic/                  # COSMIC DE / Pop!_Shell tiling, fonts, & rtkit audio
-│   ├── podman_docker/               # Container engines (Docker/Podman) & hardware group ACLs
-│   └── yadm_bootstrap/              # Layer 2 Handoff: clones user dotfiles and tool manifests
-└── vars/
-    └── pop_os_packages.yml          # Structured APT system taxonomy (AI, containers, media)
+│   ├── bootstrap.yml                  # minimum viable state on a fresh install
+│   └── workstation.yml                # full Layer 1 provision
+└── roles/
+    ├── base/                          # timezone, APT tuning, core dumps, CLI toolchain
+    ├── hardware/                      # System76 daemons, NVIDIA, graphics mode, kernelstub
+    ├── desktop/                       # fonts, PipeWire, real-time audio limits
+    ├── containers/                    # Podman by default, Docker opt-in
+    └── dotfiles/                      # yadm install and the Layer 2 handoff
 ```
+
+Every role carries its own `defaults/`, `meta/main.yml`, `meta/argument_specs.yml`,
+`handlers/` and `tasks/`. No role reads a variable file outside its own directory,
+so any one of them can be lifted out without dragging the rest along.
 
 ---
 
-## Customizing Package Taxonomies
+## Customizing Package Sets
 
-All system-level software installations are governed centrally by [vars/pop_os_packages.yml](vars/pop_os_packages.yml). To add system libraries or compiler toolchains to future provisions, append the desired deb package titles directly to the relevant structural categories:
+There is no central `vars/` file. Each role declares the packages it owns in its
+own `defaults/main.yml`, and `meta/argument_specs.yml` documents every variable
+with a type and a default. To see what a role accepts:
+
+```bash
+ansible-doc -t role -r roles b08x.workstation.hardware
+```
+
+Override in `inventory/group_vars/workstations.yml`, not in the role:
 
 ```yaml
-pop_os_packages:
-  base_cli:
-    - build-essential
-    - jq
-    - zsh
-    # Add your custom system CLI tools here
-
-  nvidia_ai_ml:
-    - system76-driver-nvidia
-    - nvidia-cuda-toolkit
-    - python3-dev
+base_packages: "{{ b08x_base_default_packages + ['direnv', 'ripgrep'] }}"
+hardware_graphics_mode: compute      # integrated | nvidia | hybrid | compute
+containers_install_docker: true      # adds a root daemon and a second storage pool
 ```
+
+### Two defaults that are deliberate, not accidental
+
+**Host CUDA is off.** `hardware_install_host_cuda` defaults to `false`. System76
+documents that basic CUDA runtime already ships with the driver, in the
+`libnvidia-compute-*` packages — check the ceiling with `nvidia-smi`. The
+forensics audit measured ~21 GB of overlapping CUDA runtime on the previous
+machine, caused by layering a host toolkit under user-space installs. Use an
+`nvidia/cuda` container image with `nvidia-container-toolkit` instead.
+
+**Docker is off.** `containers_install_docker` defaults to `false`. Podman covers
+the same ground without a root daemon or a second storage pool, and the `docker`
+group is root-equivalent, so it is granted only when Docker is actually
+installed.
 
 ---
 

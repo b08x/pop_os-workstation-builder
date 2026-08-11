@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MIT-0
+---
+requires_ansible: ">=2.15.0"
+
+action_groups:
+  workstation:
+    - ansible.builtin.apt
+    - ansible.builtin.systemd_service
+
+plugin_routing: {}

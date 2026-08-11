@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: MIT-0
+---
+namespace: b08x
+name: workstation
+version: 1.0.0
+readme: README.md
+
+authors:
+  - b08x <rwpannick@gmail.com>
+
+description: >-
+  Layer-1 provisioning for a Pop!_OS / System76 engineering workstation.
+  Owns only what requires root and is identical for every user of the machine:
+  APT packages, System76 daemons, kernelstub boot parameters, container
+  runtimes, and real-time audio limits. User identity is handed off to yadm.
+
+license_file: LICENSE
+
+tags:
+  - popos
+  - ubuntu
+  - debian
+  - system76
+  - workstation
+  - desktop
+  - nvidia
+  - linux
+
+dependencies:
+  ansible.posix: ">=1.5.0"
+  community.general: ">=8.0.0"
+
+repository: https://github.com/b08x/pop_os-workstation-builder
+documentation: https://github.com/b08x/pop_os-workstation-builder/blob/main/README.md
+homepage: https://github.com/b08x/pop_os-workstation-builder
+issues: https://github.com/b08x/pop_os-workstation-builder/issues
+
+build_ignore:
+  - .ansible
+  - .github
+  - .gitignore
+  - .ansible-lint
+  - .yamllint
+  - fact_cache
+  - changelogs
+  - docs/forensics/manifests
+  - inventory
+  - "*.pdf"
+  - "*.json"
+  - "*.tar.gz"

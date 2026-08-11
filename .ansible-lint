@@ -1,0 +1,18 @@
+---
+profile: production
+
+exclude_paths:
+  - .ansible/
+  - .github/
+  - fact_cache/
+  - docs/
+
+skip_list:
+  - role-name        # roles are namespaced by the collection, not by prefix
+
+warn_list:
+  - experimental
+
+kinds:
+  - playbook: "playbooks/*.yml"
+  - tasks: "roles/*/tasks/*.yml"
