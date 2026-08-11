@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Group variables for all Pop!_OS workstations.
+# Role defaults live with their roles; only deliberate overrides belong here.
+# ============================================================================
+
+# The human who owns this machine. Every role that touches a user account
+# reads this single value rather than guessing at ansible_user_id.
+workstation_user: b08x
+
+base_timezone: America/New_York
+
+# --- hardware --------------------------------------------------------------
+hardware_user: "{{ workstation_user }}"
+hardware_install_system76: true
+hardware_install_nvidia: true
+hardware_graphics_mode: hybrid
+
+# Deliberately false. CUDA belongs in a container; see the role defaults and
+# docs/forensics/FORENSICS-REPORT.md section 3.2.
+hardware_install_host_cuda: false
+
+# --- containers ------------------------------------------------------------
+containers_user: "{{ workstation_user }}"
+containers_install_podman: true
+
+# Flip to true only if a specific tool needs the Docker socket. Docker adds a
+# root daemon, a systemd socket, and a second storage pool.
+containers_install_docker: false
+
+# --- desktop ---------------------------------------------------------------
+desktop_enable_realtime_audio: true
+
+# --- dotfiles --------------------------------------------------------------
+dotfiles_user: "{{ workstation_user }}"
+dotfiles_repo: "git@github.com:b08x/dots.git"
+dotfiles_run_bootstrap: true
+# Leave false until ~/.ssh is restored on the target.
+dotfiles_require_clone: false

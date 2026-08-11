@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Pop!_OS 24.04 test VM. A virtio guest, so the hardware layer mostly no-ops.
+# These overrides are what make the VM a useful rehearsal rather than a pile
+# of skipped tasks.
+# ============================================================================
+
+# No System76 hardware and no GPU passthrough: the vendor packages have no
+# install candidate and the daemons would have nothing to manage.
+hardware_install_system76: false
+hardware_install_nvidia: false
+
+# The VM still boots via systemd-boot when installed in UEFI mode, so the
+# kernelstub path is worth exercising. Drop the NVIDIA argument, keep the rest.
+hardware_kernel_params:
+  - "quiet"
+  - "loglevel=3"
+
+# Exercise the skip path without needing an SSH key inside the guest.
+dotfiles_repo: ""
