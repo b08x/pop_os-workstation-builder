@@ -114,6 +114,7 @@
       register: hardware_graphics_current
       changed_when: false
       failed_when: false
+      check_mode: false
 
     - name: "Set the graphics profile to {{ hardware_graphics_mode }}"
       when:
@@ -150,6 +151,7 @@
       register: hardware_kernelstub
       changed_when: false
       failed_when: false
+      check_mode: false
 
     - name: Read the current kernelstub configuration
       when: hardware_kernelstub.rc == 0
@@ -157,6 +159,7 @@
         argv: [kernelstub, --print-config]
       register: hardware_kernelstub_config
       changed_when: false
+      check_mode: false
 
     - name: Add missing kernel arguments
       when:

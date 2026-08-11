@@ -23,6 +23,7 @@
       - "{{ item }}"
   register: hardware_apt_policy
   changed_when: false
+  check_mode: false
   loop: "{{ optional_packages }}"
 
 - name: "Install resolvable packages ({{ optional_description | default('optional packages') }})"
