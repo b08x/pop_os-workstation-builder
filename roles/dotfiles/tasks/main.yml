@@ -86,5 +86,6 @@
       no curl-pipe-bash as root. Language runtimes and agent CLIs are installed
       by the yadm bootstrap script from manifests under ~/.config/tooling/,
       into user space or per-project environments.
-      See docs/forensics/ANSIBLE-YADM-SPLIT.md for the full assignment table.
+      Rule of thumb: root and image-wide is Ansible's, $HOME is yadm's, and
+      language runtimes belong to the project that needs them.
   tags: [yadm, notice, dotfiles]

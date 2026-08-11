@@ -49,9 +49,9 @@ hardware_install_nvidia: true
 hardware_graphics_mode: hybrid
 
 # System76 packages and validates the proprietary driver against their kernel.
-# Do NOT add nvidia-driver-<NNN> here: that is a second, competing source for
-# the same driver and reproduces the dual-source trap documented in
-# docs/forensics/FORENSICS-REPORT.md section 2.3.
+# Do NOT add nvidia-driver-<NNN> here. That is a second, competing source for
+# a driver this package already provides, and which of the two wins is
+# resolution-order luck rather than intent. Keep exactly one source.
 hardware_nvidia_packages:
   - system76-driver-nvidia
 
@@ -67,8 +67,9 @@ hardware_nvidia_container_packages:
 #      nvidia-compute-utils-* packages)." Check the ceiling with nvidia-smi.
 #      They also warn nvidia-cuda-toolkit is Ubuntu-maintained and often lags
 #      the version the driver actually supports.
-#   2. FORENSICS sections 3.2 and 8.3: a host CUDA install plus pip --user
-#      produced ~21 GB of overlapping runtime on the Fedora machine.
+#   2. A prior audit of this workstation measured ~21 GB of overlapping CUDA
+#      and torch runtime, caused by a host toolkit layered under user-space
+#      pip installs of the same libraries.
 #
 # Need a specific toolkit version? Use an nvidia/cuda container image with
 # nvidia-container-toolkit rather than flipping this on.

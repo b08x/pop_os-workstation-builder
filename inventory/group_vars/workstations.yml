@@ -17,8 +17,9 @@ hardware_install_system76: true
 hardware_install_nvidia: true
 hardware_graphics_mode: hybrid
 
-# Deliberately false. CUDA belongs in a container; see the role defaults and
-# docs/forensics/FORENSICS-REPORT.md section 3.2.
+# Deliberately false. CUDA belongs in a container. The driver already ships a
+# basic CUDA runtime; a host toolkit on top of user-space installs is how you
+# end up with two overlapping GPU stacks. See the role defaults for detail.
 hardware_install_host_cuda: false
 
 # --- containers ------------------------------------------------------------

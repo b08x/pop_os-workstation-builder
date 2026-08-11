@@ -4,7 +4,7 @@ extends: default
 ignore: |
   .ansible/
   fact_cache/
-  docs/forensics/
+  docs/
 
 rules:
   line-length:

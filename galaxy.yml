@@ -43,7 +43,7 @@ build_ignore:
   - .yamllint
   - fact_cache
   - changelogs
-  - docs/forensics/manifests
+  - docs
   - inventory
   - "*.pdf"
   - "*.json"

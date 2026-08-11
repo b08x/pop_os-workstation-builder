@@ -23,3 +23,5 @@ scratch/
 .scratch/
 .system_generated/
 *.log
+
+docs/forensics/

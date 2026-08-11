@@ -107,14 +107,6 @@ pop_os-workstation-builder/            # collection root: b08x.workstation
 ├── meta/runtime.yml                   # requires_ansible, action groups
 ├── ansible.cfg                        # SSH pipelining, JSON fact caching
 ├── changelogs/changelog.yaml
-├── docs/
-│   └── forensics/                     # pre-refresh audit of the Fedora machine
-│       ├── FORENSICS-REPORT.md        # the baseline these defaults argue with
-│       ├── ANSIBLE-YADM-SPLIT.md      # per-item layer assignment
-│       ├── SPLIT-PLAN.md              # repo-split dependency analysis
-│       ├── REFRESH.md                 # Fedora to Pop migration checklist
-│       ├── GITHUB-ACTIVITY.md         # 219-repo wipe-loss survey
-│       └── WORKSTATION-ACTIVITY.md    # six months of agent and shell telemetry
 ├── inventory/
 │   ├── hosts.ini
 │   ├── group_vars/workstations.yml    # workstation_user and deliberate overrides
@@ -159,8 +151,9 @@ containers_install_docker: true      # adds a root daemon and a second storage p
 **Host CUDA is off.** `hardware_install_host_cuda` defaults to `false`. System76
 documents that basic CUDA runtime already ships with the driver, in the
 `libnvidia-compute-*` packages — check the ceiling with `nvidia-smi`. The
-forensics audit measured ~21 GB of overlapping CUDA runtime on the previous
-machine, caused by layering a host toolkit under user-space installs. Use an
+prior audit of this workstation measured ~21 GB of overlapping CUDA runtime,
+caused by layering a host toolkit under user-space installs of the same
+libraries. Use an
 `nvidia/cuda` container image with `nvidia-container-toolkit` instead.
 
 **Docker is off.** `containers_install_docker` defaults to `false`. Podman covers

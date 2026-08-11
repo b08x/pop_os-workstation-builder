@@ -44,8 +44,7 @@ releases:
       bugfixes:
         - Removed ``nvidia-driver-550`` from the NVIDIA package set. It is a
           second source for a driver ``system76-driver-nvidia`` already
-          provides, reproducing the dual-source conflict documented in
-          ``docs/forensics/FORENSICS-REPORT.md``.
+          provides, and which one wins is resolution-order luck.
         - Replaced ``failed_when`` expressions that tested ``result.rc`` on
           ``ansible.builtin.apt`` and ``ansible.builtin.systemd``. Neither
           module returns ``rc``, so those guards never evaluated as intended
@@ -62,7 +61,7 @@ releases:
           references them.
       removed_features:
         - Host CUDA is no longer installed by default. System76 documents that
-          basic CUDA runtime ships with the driver, and the forensics report
-          measured roughly 21 GB of overlapping CUDA runtime caused by layering
-          a host toolkit under user-space installs. Set
+          basic CUDA runtime ships with the driver, and a prior audit of this
+          workstation measured roughly 21 GB of overlapping CUDA runtime caused
+          by layering a host toolkit under user-space installs. Set
           ``hardware_install_host_cuda`` to re-enable.

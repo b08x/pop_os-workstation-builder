@@ -68,7 +68,9 @@ argument_specs:
         default: false
         description:
           - Install the CUDA toolkit onto the host filesystem.
-          - Off by default. See docs/forensics/FORENSICS-REPORT.md sections 3.2 and 8.3.
+          - Off by default. The driver ships a basic CUDA runtime already, and a
+            host toolkit layered under user-space installs duplicates it. Prefer
+            an nvidia/cuda container image with nvidia-container-toolkit.
       hardware_host_cuda_packages:
         type: list
         elements: str
