@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: MIT-0
+---
+ancestor: null
+releases:
+  1.0.0:
+    release_date: "2026-08-10"
+    changes:
+      release_summary: >-
+        First release as a proper Ansible collection. The repository was
+        previously a loose playbook tree; it is now b08x.workstation, with
+        self-contained roles, argument specs, and no cross-directory variable
+        lookups.
+      major_changes:
+        - Repository restructured into the ``b08x.workstation`` collection with
+          ``galaxy.yml`` and ``meta/runtime.yml``.
+        - Roles renamed now that the collection namespace carries the scope -
+          ``pop_base`` to ``base``, ``pop_hardware`` to ``hardware``,
+          ``pop_cosmic`` to ``desktop``, ``podman_docker`` to ``containers``,
+          and ``yadm_bootstrap`` to ``dotfiles``.
+        - The shared ``vars/pop_os_packages.yml`` taxonomy was dissolved into
+          each role's ``defaults/main.yml``. Playbooks no longer reach outside
+          their own directory with a ``../vars/`` relative path.
+      minor_changes:
+        - Every role gained ``defaults/``, ``meta/main.yml``,
+          ``meta/argument_specs.yml`` and ``handlers/``.
+        - Podman is now the default container runtime; Docker is opt-in behind
+          ``containers_install_docker``, and the root-equivalent ``docker``
+          group is only granted when Docker is actually installed.
+        - Added ``inventory/group_vars`` and ``inventory/host_vars`` so the
+          target user is declared once as ``workstation_user``.
+        - >-
+          ``hardware`` now masks ``power-profiles-daemon.service``, which
+          otherwise prevents ``system76-power`` from starting and makes
+          graphics switching fail silently.
+        - >-
+          ``hardware`` gained ``hardware_graphics_mode`` in place of a boolean,
+          supporting integrated, nvidia, hybrid and compute.
+        - >-
+          ``hardware`` installs the System76 firmware daemon and adds the
+          target user to ``adm``, which the daemon requires of its callers.
+        - >-
+          ``containers`` enables systemd lingering so rootless Podman units
+          survive logout.
+      bugfixes:
+        - Removed ``nvidia-driver-550`` from the NVIDIA package set. It is a
+          second source for a driver ``system76-driver-nvidia`` already
+          provides, reproducing the dual-source conflict documented in
+          ``docs/forensics/FORENSICS-REPORT.md``.
+        - Replaced ``failed_when`` expressions that tested ``result.rc`` on
+          ``ansible.builtin.apt`` and ``ansible.builtin.systemd``. Neither
+          module returns ``rc``, so those guards never evaluated as intended
+          and masked genuine failures such as a held package or a dpkg lock.
+          Optional packages are now gated on ``apt-cache policy`` instead.
+        - Replaced the ``rtkit`` service check, which tested ``.rc`` on a
+          systemd result, with a ``service_facts`` lookup.
+        - >-
+          ``yadm clone`` no longer runs under a blanket ``failed_when: false``;
+          failure is now controlled by ``dotfiles_require_clone``, and the
+          clone runs as the target user rather than whoever Ansible connected
+          as.
+        - Real-time audio groups are created before the PAM limits file
+          references them.
+      removed_features:
+        - Host CUDA is no longer installed by default. System76 documents that
+          basic CUDA runtime ships with the driver, and the forensics report
+          measured roughly 21 GB of overlapping CUDA runtime caused by layering
+          a host toolkit under user-space installs. Set
+          ``hardware_install_host_cuda`` to re-enable.
