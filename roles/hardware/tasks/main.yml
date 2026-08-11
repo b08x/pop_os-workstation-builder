@@ -1,0 +1,178 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: hardware
+# Purpose: System76 daemons, GPU driver, graphics mode, kernelstub boot args
+# ============================================================================
+
+- name: Install System76 vendor packages
+  when: hardware_install_system76 | bool
+  ansible.builtin.include_tasks: apt_optional.yml
+  vars:
+    optional_packages: "{{ hardware_system76_packages }}"
+    optional_description: System76 vendor packages
+  tags: [system76, hardware, drivers, packages]
+
+- name: Install the vendor NVIDIA driver
+  when: hardware_install_nvidia | bool
+  ansible.builtin.include_tasks: apt_optional.yml
+  vars:
+    optional_packages: "{{ hardware_nvidia_packages }}"
+    optional_description: NVIDIA driver
+  tags: [nvidia, hardware, drivers, packages]
+
+- name: Install GPU container tooling
+  when: hardware_install_nvidia | bool
+  ansible.builtin.include_tasks: apt_optional.yml
+  vars:
+    optional_packages: "{{ hardware_nvidia_container_packages }}"
+    optional_description: NVIDIA container toolkit
+  tags: [nvidia, containers, hardware, packages]
+
+# Off by default. See defaults/main.yml for the two reasons why.
+- name: Install the host CUDA toolkit
+  when:
+    - hardware_install_nvidia | bool
+    - hardware_install_host_cuda | bool
+  ansible.builtin.include_tasks: apt_optional.yml
+  vars:
+    optional_packages: "{{ hardware_host_cuda_packages }}"
+    optional_description: host CUDA toolkit
+  tags: [nvidia, cuda, hardware, packages]
+
+# --------------------------------------------------------------------------
+# Daemons
+# --------------------------------------------------------------------------
+
+- name: Collect service facts
+  ansible.builtin.service_facts:
+  tags: [systemd, daemons, hardware]
+
+# system76-power will not start while power-profiles-daemon is running. The
+# failure is quiet: the unit reports enabled, com.system76.PowerDaemon.service
+# never comes up, and graphics switching silently does nothing.
+- name: Mask power-profiles-daemon so system76-power can own power management
+  when:
+    - hardware_install_system76 | bool
+    - hardware_mask_power_profiles_daemon | bool
+    - "'power-profiles-daemon.service' in ansible_facts.services"
+  become: true
+  ansible.builtin.systemd_service:
+    name: power-profiles-daemon.service
+    enabled: false
+    masked: true
+    state: stopped
+  tags: [systemd, power, system76, hardware]
+
+# Unconditional: masking above may have changed what systemd reports, and the
+# tasks below branch on it. Cheaper to re-read than to reason about the delta.
+- name: Re-read service facts after masking
+  ansible.builtin.service_facts:
+  tags: [systemd, power, hardware]
+
+- name: Enable System76 daemons that are installed
+  when:
+    - hardware_install_system76 | bool
+    - item in ansible_facts.services
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop: "{{ hardware_system76_services }}"
+  tags: [systemd, daemons, power, scheduler, hardware]
+
+# The firmware daemon refuses requests from users outside `adm`.
+- name: Add the target user to the firmware admin group
+  when:
+    - hardware_install_system76 | bool
+    - hardware_user is defined
+    - "'system76-firmware-daemon.service' in ansible_facts.services"
+  become: true
+  ansible.builtin.user:
+    name: "{{ hardware_user }}"
+    groups: "{{ hardware_firmware_admin_group }}"
+    append: true
+  tags: [firmware, groups, system76, hardware]
+
+# --------------------------------------------------------------------------
+# Graphics mode
+# --------------------------------------------------------------------------
+
+# Both the read and the write need root -- `system76-power graphics` with no
+# argument is itself a privileged call.
+- name: Configure the graphics profile
+  when:
+    - hardware_install_nvidia | bool
+    - "'system76-power.service' in ansible_facts.services"
+  become: true
+  tags: [graphics, gpu, nvidia, hardware]
+  block:
+    - name: Read the current graphics profile
+      ansible.builtin.command:
+        argv: [system76-power, graphics]
+      register: hardware_graphics_current
+      changed_when: false
+      failed_when: false
+
+    - name: "Set the graphics profile to {{ hardware_graphics_mode }}"
+      when:
+        - hardware_graphics_current.rc == 0
+        - hardware_graphics_mode not in (hardware_graphics_current.stdout | lower)
+      ansible.builtin.command:
+        argv: [system76-power, graphics, "{{ hardware_graphics_mode }}"]
+      changed_when: true
+      notify: hardware reboot required
+
+    - name: Note when the graphics profile could not be read
+      when: hardware_graphics_current.rc != 0
+      ansible.builtin.debug:
+        msg: >-
+          system76-power could not report the graphics mode
+          (rc={{ hardware_graphics_current.rc }}). This is expected on desktops
+          and on laptops without switchable graphics. It is NOT expected on a
+          switchable-graphics laptop -- there, check that
+          power-profiles-daemon is masked and com.system76.PowerDaemon.service
+          is running.
+
+# --------------------------------------------------------------------------
+# Boot parameters
+# --------------------------------------------------------------------------
+
+- name: Manage kernel parameters via kernelstub
+  when: hardware_manage_kernel_params | bool
+  become: true
+  tags: [kernelstub, bootloader, efi, boot, hardware]
+  block:
+    - name: Locate kernelstub
+      ansible.builtin.command:
+        argv: [which, kernelstub]
+      register: hardware_kernelstub
+      changed_when: false
+      failed_when: false
+
+    - name: Read the current kernelstub configuration
+      when: hardware_kernelstub.rc == 0
+      ansible.builtin.command:
+        argv: [kernelstub, --print-config]
+      register: hardware_kernelstub_config
+      changed_when: false
+
+    - name: Add missing kernel arguments
+      when:
+        - hardware_kernelstub.rc == 0
+        - item not in (hardware_kernelstub_config.stdout | default(''))
+      ansible.builtin.command:
+        argv: [kernelstub, --add-options, "{{ item }}"]
+      loop: "{{ hardware_kernel_params }}"
+      changed_when: true
+      notify: hardware reboot required
+
+    - name: Warn when kernelstub is absent
+      when: hardware_kernelstub.rc != 0
+      ansible.builtin.debug:
+        msg: >-
+          kernelstub not found, so kernel arguments
+          {{ hardware_kernel_params | join(' ') }} were not applied. Pop!_OS
+          uses systemd-boot and ships kernelstub; seeing this on Pop means
+          something is off. On a GRUB system, set them in /etc/default/grub.

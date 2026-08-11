@@ -1,62 +1,78 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # ============================================================================
-# Master Workstation Provisioning Playbook for Pop!_OS
-# Orchestrates Layer 1 System Setup and transitions to Layer 2 User Dotfiles
+# Master provisioning playbook -- b08x.workstation
+#
+# Layer 1 only: root-owned, identical for every user of the machine.
+# Layer 2 ($HOME) is yadm's. Layer 3 (runtimes) belongs to each project.
 # ============================================================================
 
-- name: Provision Pop!_OS / System76 Workstation
+- name: Provision a Pop!_OS / System76 workstation
   hosts: workstations
   gather_facts: true
-  vars_files:
-    - ../vars/pop_os_packages.yml
 
   pre_tasks:
-    - name: Display execution header & validate distribution
+    - name: Show what is about to run
       ansible.builtin.debug:
-        msg: |
-          ╔════════════════════════════════════════════════════════════════╗
-          ║          Pop!_OS Workstation Provisioning Engine              ║
-          ║          Target User: {{ target_user | default('b08x') }}      ║
-          ╚════════════════════════════════════════════════════════════════╝
-          Detected Distribution: {{ ansible_distribution }} {{ ansible_distribution_version }}
+        msg:
+          - "b08x.workstation -- Layer 1 provisioning"
+          - "Host:         {{ inventory_hostname }}"
+          - "Distribution: {{ ansible_distribution }} {{ ansible_distribution_version }} ({{ ansible_os_family }})"
+          - "Target user:  {{ workstation_user | default('UNSET') }}"
+          - "Host CUDA:    {{ hardware_install_host_cuda | default(false) }}"
+          - "Docker:       {{ containers_install_docker | default(false) }}"
+      tags: [always]
 
-    - name: Assert running on Pop!_OS or compatible Debian/Ubuntu OS
+    - name: Require a Debian-family distribution
       ansible.builtin.assert:
         that:
-          - ansible_distribution in ["Pop!_OS", "Ubuntu", "Debian"]
-        fail_msg: |
-          Incompatible Linux Distribution!
-          This playbook requires Pop!_OS, Ubuntu, or Debian.
-          Detected: {{ ansible_distribution }} (Family: {{ ansible_os_family }})
-        success_msg: "Distribution validated: {{ ansible_distribution }}"
+          - ansible_os_family == "Debian"
+        fail_msg: >-
+          {{ inventory_hostname }} reports {{ ansible_distribution }}
+          {{ ansible_distribution_version }} (family {{ ansible_os_family }}).
+          This collection is APT-only. If this is gir, it has not been
+          reinstalled with Pop!_OS yet.
+        success_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} accepted."
+      tags: [always]
+
+    - name: Require a target user
+      ansible.builtin.assert:
+        that:
+          - workstation_user is defined
+          - workstation_user | length > 0
+        fail_msg: Set workstation_user in inventory/group_vars/workstations.yml.
+      tags: [always]
 
   roles:
-    - role: pop_base
-      tags: ["base", "system", "apt"]
+    - role: base
+      tags: [base, system, apt]
 
-    - role: pop_hardware
-      tags: ["hardware", "system76", "nvidia", "bootloader"]
+    - role: hardware
+      tags: [hardware, system76, nvidia, bootloader]
 
-    - role: pop_cosmic
-      tags: ["desktop", "cosmic", "gui", "shell"]
+    - role: desktop
+      tags: [desktop, cosmic, fonts, audio]
 
-    - role: podman_docker
-      when: enable_container_tools | default(true) | bool
-      tags: ["containers", "docker", "podman"]
+    - role: containers
+      tags: [containers, podman, docker]
 
-    - role: yadm_bootstrap
-      when: enable_yadm_bootstrap | default(true) | bool
-      tags: ["yadm", "dotfiles", "user"]
+    - role: dotfiles
+      tags: [dotfiles, yadm, user]
 
   post_tasks:
-    - name: Display completion summary
+    - name: Check whether a reboot is pending
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: workstation_reboot_required
+      tags: [always]
+
+    - name: Summarise
       ansible.builtin.debug:
-        msg: |
-          ╔════════════════════════════════════════════════════════════════╗
-          ║             Provisioning Completed Successfully                ║
-          ╚════════════════════════════════════════════════════════════════╝
-          - Layer 1 System setup and daemons fully initialized.
-          - Layer 2 Dotfiles & CLI tool manifests passed to yadm.
-          
-          Recommendation: Reboot your system if GPU drivers or kernelstub parameters were modified.
+        msg: >-
+          {{
+            ['Layer 1 provisioning complete.']
+            + (['A reboot is required: graphics mode or kernel arguments changed.']
+               if workstation_reboot_required.stat.exists else [])
+            + ['Next: confirm the yadm bootstrap ran, then set up per-project environments.']
+          }}
+      tags: [always]

@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: dotfiles
+# Purpose: install yadm, clone the user's dotfiles, hand off to Layer 2
+# ============================================================================
+
+- name: Assert a target user was supplied
+  ansible.builtin.assert:
+    that:
+      - dotfiles_user is defined
+      - dotfiles_user | length > 0
+    fail_msg: dotfiles_user must be set so the clone lands in the right home directory.
+  tags: [always]
+
+- name: Resolve the target user's home directory
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ dotfiles_user }}"
+  tags: [yadm, dotfiles]
+
+- name: Set the home directory fact
+  ansible.builtin.set_fact:
+    dotfiles_home: "{{ ansible_facts.getent_passwd[dotfiles_user][4] }}"
+  tags: [yadm, dotfiles]
+
+- name: Install yadm
+  when: dotfiles_manage | bool
+  become: true
+  ansible.builtin.apt:
+    name: "{{ dotfiles_packages }}"
+    state: present
+  tags: [yadm, install, packages, dotfiles]
+
+- name: Check whether the yadm repository already exists
+  when: dotfiles_manage | bool
+  become: true
+  become_user: "{{ dotfiles_user }}"
+  ansible.builtin.stat:
+    path: "{{ dotfiles_home }}/.local/share/yadm/repo.git"
+  register: dotfiles_repo_stat
+  changed_when: false
+  tags: [yadm, clone, dotfiles]
+
+- name: Clone the dotfiles repository
+  when:
+    - dotfiles_manage | bool
+    - dotfiles_repo | length > 0
+    - not dotfiles_repo_stat.stat.exists
+  become: true
+  become_user: "{{ dotfiles_user }}"
+  ansible.builtin.command:
+    argv: >-
+      {{ ['yadm', 'clone']
+         + (['--bootstrap'] if dotfiles_run_bootstrap | bool else ['--no-bootstrap'])
+         + [dotfiles_repo] }}
+  args:
+    chdir: "{{ dotfiles_home }}"
+    creates: "{{ dotfiles_home }}/.local/share/yadm/repo.git"
+  register: dotfiles_clone
+  # A first run on a fresh machine has no SSH key, so the clone legitimately
+  # fails. Set dotfiles_require_clone: true once keys are in place and you want
+  # that failure to be loud.
+  failed_when:
+    - dotfiles_require_clone | bool
+    - dotfiles_clone.rc | default(0) != 0
+  tags: [yadm, clone, bootstrap, dotfiles]
+
+- name: Report a clone that did not succeed
+  when:
+    - dotfiles_clone is defined
+    - dotfiles_clone.rc | default(0) != 0
+  ansible.builtin.debug:
+    msg: |
+      yadm clone exited {{ dotfiles_clone.rc }}.
+      Usually this means SSH access to {{ dotfiles_repo }} is not set up yet.
+      Restore ~/.ssh, then re-run: ansible-playbook playbooks/workstation.yml --tags dotfiles
+      stderr: {{ dotfiles_clone.stderr | default('') | truncate(300) }}
+  tags: [yadm, clone, dotfiles]
+
+- name: Explain where Layer 1 stops
+  ansible.builtin.debug:
+    msg: |
+      === Layer 1 complete, Layer 2 handed off ===
+      Ansible does not install user-scope tooling. No global npm, no pip --user,
+      no curl-pipe-bash as root. Language runtimes and agent CLIs are installed
+      by the yadm bootstrap script from manifests under ~/.config/tooling/,
+      into user space or per-project environments.
+      See docs/forensics/ANSIBLE-YADM-SPLIT.md for the full assignment table.
+  tags: [yadm, notice, dotfiles]

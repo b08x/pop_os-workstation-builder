@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: containers
+# Purpose: Podman (default) and Docker (opt-in), plus hardware group access
+# ============================================================================
+
+- name: Assert a target user was supplied
+  ansible.builtin.assert:
+    that:
+      - containers_user is defined
+      - containers_user | length > 0
+    fail_msg: >-
+      containers_user must be set. Define it in group_vars so group membership
+      and lingering are applied to a real account rather than whichever user
+      Ansible happened to connect as.
+  tags: [always]
+
+- name: Install Podman
+  when: containers_install_podman | bool
+  become: true
+  ansible.builtin.apt:
+    name: "{{ containers_podman_packages }}"
+    state: present
+  tags: [packages, podman, containers]
+
+- name: Install Docker
+  when: containers_install_docker | bool
+  become: true
+  ansible.builtin.apt:
+    name: "{{ containers_docker_packages }}"
+    state: present
+  notify: containers reload systemd
+  tags: [packages, docker, containers]
+
+- name: Enable the Docker daemon
+  when: containers_install_docker | bool
+  become: true
+  ansible.builtin.systemd_service:
+    name: docker.service
+    enabled: true
+    state: started
+  tags: [systemd, docker, containers]
+
+- name: Grant hardware and container group membership
+  become: true
+  ansible.builtin.user:
+    name: "{{ containers_user }}"
+    groups: "{{ containers_user_groups + (['docker'] if containers_install_docker | bool else []) }}"
+    append: true
+  tags: [groups, permissions, users, containers]
+
+- name: Enable systemd lingering for rootless containers
+  when:
+    - containers_enable_lingering | bool
+    - containers_install_podman | bool
+  become: true
+  ansible.builtin.command:
+    argv: [loginctl, enable-linger, "{{ containers_user }}"]
+  args:
+    creates: "/var/lib/systemd/linger/{{ containers_user }}"
+  tags: [systemd, lingering, podman, containers]

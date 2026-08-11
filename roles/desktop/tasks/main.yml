@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: desktop
+# Purpose: fonts, PipeWire, and real-time audio scheduling limits
+# ============================================================================
+
+- name: Install fonts
+  when: desktop_install_fonts | bool
+  become: true
+  ansible.builtin.apt:
+    name: "{{ desktop_font_packages }}"
+    state: present
+  notify: desktop refresh font cache
+  tags: [fonts, desktop, packages]
+
+- name: Install the PipeWire audio stack
+  when: desktop_install_audio | bool
+  become: true
+  ansible.builtin.apt:
+    name: "{{ desktop_audio_packages }}"
+    state: present
+  tags: [audio, pipewire, media, desktop, packages]
+
+- name: Configure real-time audio scheduling
+  when: desktop_enable_realtime_audio | bool
+  become: true
+  tags: [audio, pipewire, limits, rtkit, desktop]
+  block:
+    - name: Ensure the real-time groups exist
+      ansible.builtin.group:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ desktop_realtime_groups }}"
+
+    - name: Deploy PAM real-time limits
+      ansible.builtin.copy:
+        dest: /etc/security/limits.d/99-realtime-audio.conf
+        content: |
+          # Managed by b08x.workstation.desktop -- do not edit by hand.
+          # Low-latency audio permissions. rtprio stays below the kernel
+          # watchdog priority of 99 so a runaway thread cannot lock the box.
+          {% for grp in desktop_realtime_groups %}
+          @{{ grp }}    -  rtprio   {{ desktop_realtime_rtprio }}
+          @{{ grp }}    -  memlock  unlimited
+          @{{ grp }}    -  nice     {{ desktop_realtime_nice }}
+          {% endfor %}
+        owner: root
+        group: root
+        mode: "0644"
+
+    # rtkit ships with the audio package set above, but the service may not be
+    # registered yet on the first pass. service_facts tells us for certain --
+    # the previous implementation tested `.rc` on a systemd result, an
+    # attribute that module never returns.
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Enable rtkit
+      when: "'rtkit-daemon.service' in ansible_facts.services"
+      ansible.builtin.systemd_service:
+        name: rtkit-daemon.service
+        enabled: true
+        state: started
+
+    - name: Note when rtkit is unavailable
+      when: "'rtkit-daemon.service' not in ansible_facts.services"
+      ansible.builtin.debug:
+        msg: >-
+          rtkit-daemon.service is not registered on this host. PAM limits are
+          in place, but applications relying on rtkit to hand out real-time
+          priority will fall back to standard scheduling.

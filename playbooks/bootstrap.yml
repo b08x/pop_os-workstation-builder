@@ -1,48 +1,76 @@
 # SPDX-License-Identifier: MIT-0
 ---
-# Rapid Bootstrap Entrypoint Playbook for bare-metal initialization
-# Focuses on minimal requirements before kicking off full workstation setup
+# ============================================================================
+# Bootstrap -- the minimum needed on a freshly installed machine before
+# workstation.yml can do anything useful.
+#
+# Run this first:
+#   ansible-playbook -i inventory/hosts.ini playbooks/bootstrap.yml -K
+# ============================================================================
 
-- name: Bootstrap Bare-Metal Pop!_OS System
+- name: Bootstrap a bare Pop!_OS system
   hosts: workstations
   gather_facts: true
 
+  vars:
+    bootstrap_packages:
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - openssh-server
+      - python3
+      - python3-apt
+      - sudo
+      - yadm
+
+  pre_tasks:
+    - name: Require a Debian-family distribution
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "Debian"
+        fail_msg: >-
+          {{ inventory_hostname }} is {{ ansible_distribution }}
+          {{ ansible_distribution_version }}, not a Debian derivative.
+      tags: [always]
+
   tasks:
-    - name: Ensure APT caches are updated and minimal utilities installed
+    - name: Refresh the APT cache and install the bootstrap set
       become: true
       ansible.builtin.apt:
-        name:
-          - git
-          - curl
-          - sudo
-          - zsh
-          - stow
+        name: "{{ bootstrap_packages }}"
         state: present
         update_cache: true
-
-    - name: Check if yadm is installed
-      ansible.builtin.command: which yadm
-      register: yadm_check
-      changed_when: false
-      failed_when: false
-
-    - name: Install yadm via APT if available or official download script
-      when: yadm_check.rc != 0
-      become: true
-      ansible.builtin.apt:
-        name: yadm
-        state: present
-      register: yadm_apt_install
+      register: bootstrap_apt
+      # yadm is absent from some Ubuntu package sets. Everything else here is
+      # in main, so a failure that mentions yadm is tolerable and anything
+      # else is not.
       failed_when:
-        - yadm_apt_install.rc != 0
-        - >
-          "Unable to locate" not in (yadm_apt_install.stderr | default('')) and
-          "has no installation candidate" not in (yadm_apt_install.stderr | default(''))
-      # Non-fatal: yadm_bootstrap role handles fallback installation
+        - bootstrap_apt.failed | default(false)
+        - "'yadm' not in (bootstrap_apt.msg | default(''))"
 
-    - name: Display instructions to run master playbook
+    - name: Install yadm from the upstream release when APT has no candidate
+      when: bootstrap_apt.failed | default(false)
+      become: true
+      ansible.builtin.get_url:
+        url: https://github.com/TheLocehiliosan/yadm/raw/master/yadm
+        dest: /usr/local/bin/yadm
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Enable sshd so Ansible can reach this host over the network
+      become: true
+      ansible.builtin.systemd_service:
+        name: ssh.service
+        enabled: true
+        state: started
+
+    - name: Report what comes next
       ansible.builtin.debug:
         msg: |
-          Bootstrap initialization complete!
-          To run the full workstation configuration, execute:
-          ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml --ask-become-pass
+          Bootstrap complete.
+          Run the full provision with:
+            ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml -K
+          Preview it first with:
+            ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml -K --check --diff

@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: base
+# Purpose: timezone, core dump policy, APT tuning, system CLI toolchain
+# ============================================================================
+
+- name: Set system timezone
+  become: true
+  community.general.timezone:
+    name: "{{ base_timezone }}"
+  tags: [timezone, base]
+
+- name: Configure core dump policy
+  when: base_disable_coredumps | bool
+  become: true
+  tags: [coredumps, base]
+  block:
+    - name: Create systemd coredump drop-in directory
+      ansible.builtin.file:
+        path: /etc/systemd/coredump.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Deploy coredump disable drop-in
+      ansible.builtin.copy:
+        dest: /etc/systemd/coredump.conf.d/99-disable-coredumps.conf
+        content: |
+          # Managed by b08x.workstation.base -- do not edit by hand.
+          [Coredump]
+          Storage=none
+          ProcessSizeMax=0
+        owner: root
+        group: root
+        mode: "0644"
+      notify: base reload systemd
+
+- name: Configure APT behaviour
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/99-workstation-optimizations
+    content: |
+      // Managed by b08x.workstation.base -- do not edit by hand.
+      APT::Get::AutomaticRemove "true";
+      APT::Install-Recommends "{{ base_apt_install_recommends | bool | lower }}";
+      APT::Install-Suggests "{{ base_apt_install_suggests | bool | lower }}";
+      Acquire::http::Pipeline-Depth "{{ base_apt_pipeline_depth }}";
+      Acquire::Languages "none";
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [apt, base]
+
+- name: Upgrade the base system
+  when: base_apt_upgrade != "no"
+  become: true
+  ansible.builtin.apt:
+    upgrade: "{{ base_apt_upgrade }}"
+    update_cache: true
+    cache_valid_time: "{{ base_apt_cache_valid_time }}"
+  tags: [apt, base, upgrade]
+
+- name: Install the system CLI toolchain
+  become: true
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: "{{ base_apt_cache_valid_time }}"
+  tags: [packages, cli, base]
