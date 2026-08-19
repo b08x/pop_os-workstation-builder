@@ -43,3 +43,12 @@ base_packages:
   - wget
   - zip
   - zsh
+
+# Performance tuning sysctls (benchmarked for memory/latency balance)
+base_sysctls:
+  vm.swappiness: "10"
+  vm.vfs_cache_pressure: "50"
+  vm.overcommit_memory: "0"
+  vm.dirty_background_ratio: "5"
+  vm.dirty_ratio: "15"
+  net.core.somaxconn: "1024"
