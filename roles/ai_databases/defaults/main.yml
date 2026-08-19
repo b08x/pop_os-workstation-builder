@@ -1,6 +1,6 @@
 ---
 # Sane defaults for database users/passwords. Override with Ansible Vault in production.
-ai_postgres_user: postgres
-ai_postgres_password: "change_me_in_vault"
-ai_clickhouse_user: clickhouse
-ai_clickhouse_password: "change_me_in_vault"
+ai_databases_postgres_user: postgres
+ai_databases_postgres_password: "change_me_in_vault"
+ai_databases_clickhouse_user: clickhouse
+ai_databases_clickhouse_password: "change_me_in_vault"

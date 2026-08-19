@@ -1,5 +1,5 @@
 ---
-- name: restart hermes
+- name: Restart hermes
   ansible.builtin.systemd:
     name: "{{ item }}"
     state: restarted
