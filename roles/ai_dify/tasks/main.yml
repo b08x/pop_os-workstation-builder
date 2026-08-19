@@ -16,7 +16,7 @@
     owner: root
     group: ai-svc
     mode: "0640"
-  notify: restart dify
+  notify: Restart dify
 
 - name: Deploy Dify Quadlets
   ansible.builtin.template:
@@ -28,7 +28,7 @@
     - dify-worker
     - dify-web
     - dify-sandbox
-  notify: restart dify
+  notify: Restart dify
 
 - name: Enable and start Dify services
   ansible.builtin.systemd:

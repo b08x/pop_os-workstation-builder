@@ -6,14 +6,14 @@
     owner: root
     group: ai-svc
     mode: "0640"
-  notify: restart langfuse
+  notify: Restart langfuse
 
 - name: Deploy Langfuse Quadlets
   ansible.builtin.template:
     src: langfuse-web.container.j2
     dest: /etc/containers/systemd/langfuse-web.container
     mode: "0644"
-  notify: restart langfuse
+  notify: Restart langfuse
 
 - name: Enable and start Langfuse
   ansible.builtin.systemd:

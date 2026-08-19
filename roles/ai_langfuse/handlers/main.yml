@@ -1,5 +1,5 @@
 ---
-- name: restart langfuse
+- name: Restart langfuse
   ansible.builtin.systemd:
     name: langfuse-web.service
     state: restarted

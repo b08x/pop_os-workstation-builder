@@ -1,5 +1,5 @@
 ---
-- name: restart dify
+- name: Restart dify
   ansible.builtin.systemd:
     name: "{{ item }}.service"
     state: restarted

@@ -3,8 +3,8 @@
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
-    owner: "{{ item.owner | default(ai-svc) }}"
-    group: "{{ item.group | default(ai-svc) }}"
+    owner: "{{ item.owner | default('ai-svc') }}"
+    group: "{{ item.group | default('ai-svc') }}"
     mode: "0755"
   loop:
     - { path: /opt/ai/data/postgres, owner: "999", group: "999" } # Standard postgres UID
@@ -18,7 +18,7 @@
     owner: root
     group: ai-svc
     mode: "0640"
-  notify: restart databases
+  notify: Restart databases
 
 - name: Deploy Database Quadlets
   ansible.builtin.template:
@@ -29,7 +29,7 @@
     - ai-postgres
     - ai-redis
     - ai-clickhouse
-  notify: restart databases
+  notify: Restart databases
 
 - name: Enable and start Database services
   ansible.builtin.systemd:

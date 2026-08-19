@@ -1,5 +1,5 @@
 ---
-- name: restart databases
+- name: Restart databases
   ansible.builtin.systemd:
     name: "{{ item }}.service"
     state: restarted
