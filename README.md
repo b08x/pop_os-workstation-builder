@@ -101,6 +101,18 @@ Because this collection is fully idempotent, you can re-run it at any time witho
 ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml --diff --check
 ```
 
+### Step 4: Backup & Restore Operations
+
+Stateful AI data and databases are safeguarded by modular, container-aware backup routines. Rather than a monolithic backup role, each `ai_*` role ships with embedded `backup.yml` and `restore.yml` tasks. They gracefully stop Systemd units, dump logical data, compress volumes, and restart services.
+
+```bash
+# Execute isolated backups across all roles
+ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml --tags backup
+
+# Execute a restore (prompts for the timestamped archive name)
+ansible-playbook -i inventory/hosts.ini playbooks/workstation.yml --tags restore -e "ai_databases_archive=/opt/ai/backups/..."
+```
+
 ---
 
 ## Repository Anatomy
@@ -119,10 +131,17 @@ pop_os-workstation-builder/            # collection root: b08x.workstation
 │   ├── bootstrap.yml                  # minimum viable state on a fresh install
 │   └── workstation.yml                # full Layer 1 provision
 └── roles/
-    ├── base/                          # timezone, APT tuning, core dumps, CLI toolchain
+    ├── ai_core/                       # AI networking (DNS quadlets), service users, and paths
+    ├── ai_databases/                  # Stateful data tier: Postgres (pgvector), Redis, Clickhouse
+    ├── ai_dify/                       # Dify multi-quadlet orchestration (web, api, worker, sandbox)
+    ├── ai_hermes/                     # Hermes agent gateway and dashboard UI
+    ├── ai_langfuse/                   # LLM observability and telemetry tracking
+    ├── ai_ollama/                     # Local hardware-accelerated model inference (DRI passthrough)
+    ├── ai_whisper/                    # Host-compiled Whisper.cpp containers via intel/oneapi-basekit
+    ├── base/                          # timezone, APT tuning, sysctls (zram), core dumps
     ├── hardware/                      # System76 daemons, NVIDIA, graphics mode, kernelstub
     ├── desktop/                       # fonts, PipeWire, real-time audio limits
-    ├── containers/                    # Podman by default, Docker opt-in
+    ├── containers/                    # Podman and Quadlet infrastructure
     └── dotfiles/                      # yadm install and the Layer 2 handoff
 ```
 
@@ -208,7 +227,7 @@ The future evolution of `pop_os-workstation-builder` is structured around enhanc
 ### Milestone 3: Advanced AI Workstation Profiles
 
 - [ ] **Modular GPU Acceleration Switching**: Add prompt-driven or inventory-controlled feature toggles between native NVIDIA CUDA profiles and modern OpenCL/AMD ROCm compute arrays.
-- [ ] **Local LLM Server Primitives**: Create an optional `ollama_service` role capable of standing up locally hosted inference engines wrapped with GPU access rights in Layer 1.
+- [x] **Local LLM Server Primitives**: Replaced with a comprehensive AI application ecosystem (`ai_ollama`, `ai_hermes`, `ai_dify`, `ai_langfuse`) deployed natively via Podman Quadlets.
 
 ### Milestone 4: Telemetry & Latency Profiling
 
@@ -227,7 +246,7 @@ The future evolution of `pop_os-workstation-builder` is structured around enhanc
 
 ### Milestone 7: Containerized AI/ML Runtime Harmonization
 
-- [ ] **Container-First ML Pipeline Standard**: Eliminate system library collisions and multi-gigabyte storage duplication (e.g., overlapping CUDA bindings across host systems and Python venvs) by routing PyTorch, spaCy large NLP models, and `onnxruntime` workloads strictly through Podman/Docker containers utilizing `nvidia-container-toolkit`.
+- [x] **Container-First ML Pipeline Standard**: Successfully implemented. All AI/ML workloads and databases (`pgvector`, `Clickhouse`) are structurally bound to Podman Quadlets attached to isolated internal networks (`ai-net`), cleanly eliminating host Python venv bloat.
 
 ### Milestone 8: Mandatory Access Control (AppArmor Harmonization)
 
