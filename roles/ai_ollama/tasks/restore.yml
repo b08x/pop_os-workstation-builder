@@ -1,0 +1,26 @@
+---
+- name: Assert archive variable is provided
+  ansible.builtin.assert:
+    that:
+      - ai_ollama_archive is defined
+    fail_msg: "Please provide ai_ollama_archive (e.g. -e ai_ollama_archive=/opt/ai/backups/ollama_2026.tar.gz)"
+
+- name: Stop services for restore
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: ["ollama.service"]
+  failed_when: false
+
+- name: Extract archive to root
+  ansible.builtin.unarchive:
+    src: "{{ ai_ollama_archive }}"
+    dest: /
+    remote_src: true
+
+- name: Start services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  loop: ["ollama.service"]
+  failed_when: false

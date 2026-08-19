@@ -1,5 +1,5 @@
 ---
-- name: restart whisper
+- name: Restart whisper
   ansible.builtin.systemd:
     name: whisper.service
     state: restarted

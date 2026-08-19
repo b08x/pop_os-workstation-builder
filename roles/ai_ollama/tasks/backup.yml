@@ -1,0 +1,36 @@
+---
+- name: Ensure backup directory exists
+  ansible.builtin.file:
+    path: /opt/ai/backups
+    state: directory
+    owner: root
+    mode: "0755"
+
+- name: Get current timestamp
+  ansible.builtin.command: date +%Y%m%d_%H%M%S
+  register: _ts
+  changed_when: false
+
+- name: Stop services for backup
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: ["ollama.service"]
+  failed_when: false
+
+- name: Archive data and configs
+  community.general.archive:
+    path:
+      - /opt/ai/data/ollama
+    dest: "/opt/ai/backups/ollama_{{ _ts.stdout }}.tar.gz"
+    format: gz
+    owner: root
+    mode: "0600"
+  failed_when: false  # In case paths do not exist yet
+
+- name: Start services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  loop: ["ollama.service"]
+  failed_when: false

@@ -1,0 +1,26 @@
+---
+- name: Assert archive variable is provided
+  ansible.builtin.assert:
+    that:
+      - ai_langfuse_archive is defined
+    fail_msg: "Please provide ai_langfuse_archive (e.g. -e ai_langfuse_archive=/opt/ai/backups/langfuse_2026.tar.gz)"
+
+- name: Stop services for restore
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: ["langfuse-web.service"]
+  failed_when: false
+
+- name: Extract archive to root
+  ansible.builtin.unarchive:
+    src: "{{ ai_langfuse_archive }}"
+    dest: /
+    remote_src: true
+
+- name: Start services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  loop: ["langfuse-web.service"]
+  failed_when: false

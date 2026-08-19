@@ -39,3 +39,11 @@
   loop:
     - hermes-gateway.service
     - hermes-dashboard.service
+
+- name: Execute backup
+  ansible.builtin.include_tasks: backup.yml
+  tags: [never, backup]
+
+- name: Execute restore
+  ansible.builtin.include_tasks: restore.yml
+  tags: [never, restore]

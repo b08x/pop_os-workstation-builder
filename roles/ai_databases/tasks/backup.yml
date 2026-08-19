@@ -1,0 +1,44 @@
+---
+- name: Ensure backup directory exists
+  ansible.builtin.file:
+    path: /opt/ai/backups
+    state: directory
+    owner: root
+    mode: "0755"
+
+- name: Get current timestamp
+  ansible.builtin.command: date +%Y%m%d_%H%M%S
+  register: _ts
+  changed_when: false
+
+- name: Logical dump of Postgres
+  ansible.builtin.command: podman exec ai-postgres pg_dumpall -U postgres -f /var/lib/postgresql/data/logical_dump.sql
+  changed_when: false
+  failed_when: false
+
+- name: Stop services for backup
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: ["ai-postgres.service", "ai-redis.service", "ai-clickhouse.service"]
+  failed_when: false
+
+- name: Archive data and configs
+  community.general.archive:
+    path:
+      - /opt/ai/data/postgres
+      - /opt/ai/data/redis
+      - /opt/ai/data/clickhouse
+      - /opt/ai/config/databases.env
+    dest: "/opt/ai/backups/databases_{{ _ts.stdout }}.tar.gz"
+    format: gz
+    owner: root
+    mode: "0600"
+  failed_when: false  # In case paths do not exist yet
+
+- name: Start services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  loop: ["ai-postgres.service", "ai-redis.service", "ai-clickhouse.service"]
+  failed_when: false

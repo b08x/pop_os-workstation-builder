@@ -1,0 +1,26 @@
+---
+- name: Assert archive variable is provided
+  ansible.builtin.assert:
+    that:
+      - ai_dify_archive is defined
+    fail_msg: "Please provide ai_dify_archive (e.g. -e ai_dify_archive=/opt/ai/backups/dify_2026.tar.gz)"
+
+- name: Stop services for restore
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: ["dify-sandbox.service", "dify-worker.service", "dify-api.service", "dify-web.service"]
+  failed_when: false
+
+- name: Extract archive to root
+  ansible.builtin.unarchive:
+    src: "{{ ai_dify_archive }}"
+    dest: /
+    remote_src: true
+
+- name: Start services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  loop: ["dify-sandbox.service", "dify-worker.service", "dify-api.service", "dify-web.service"]
+  failed_when: false

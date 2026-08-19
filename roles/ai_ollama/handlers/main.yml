@@ -1,5 +1,5 @@
 ---
-- name: restart ollama
+- name: Restart ollama
   ansible.builtin.systemd:
     name: ollama.service
     state: restarted

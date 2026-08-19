@@ -1,0 +1,26 @@
+---
+- name: Assert archive variable is provided
+  ansible.builtin.assert:
+    that:
+      - ai_databases_archive is defined
+    fail_msg: "Please provide ai_databases_archive (e.g. -e ai_databases_archive=/opt/ai/backups/databases_2026.tar.gz)"
+
+- name: Stop services for restore
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: ["ai-postgres.service", "ai-redis.service", "ai-clickhouse.service"]
+  failed_when: false
+
+- name: Extract archive to root
+  ansible.builtin.unarchive:
+    src: "{{ ai_databases_archive }}"
+    dest: /
+    remote_src: true
+
+- name: Start services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  loop: ["ai-postgres.service", "ai-redis.service", "ai-clickhouse.service"]
+  failed_when: false
