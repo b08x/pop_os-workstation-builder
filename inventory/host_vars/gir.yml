@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# gir -- the System76 workstation. Still Fedora 43 until the wipe; the
+# distribution assert in workstation.yml stops the run until then.
+#
+# This file holds what is true of *this machine*, which is what host_vars is
+# for. The user-scope tool list lives here rather than in yadm because a
+# version-pinned package list is a description of installs, and installs are
+# Ansible's. yadm keeps authored content -- shell, agent skills, app configs.
+# See docs/ANSIBLE-AND-YADM.md.
+# ============================================================================
+
+# --- Python CLI tooling -----------------------------------------------------
+# Captured from `uv tool list` on gir, 2026-08-10, minus docs2db.
+#
+# docs2db was removed deliberately: it depends on torch, and installing it
+# pulled ~5 GB of cu13 wheels into a CLI tool's venv on a guest with no GPU.
+# Anything whose dependency tree reaches torch, transformers or onnxruntime is
+# a Layer 3 project, not a CLI utility. See BACKLOG.md item 2b.
+#
+# Versions are pins, not floors. tooling_uv_state is `present`, so a run
+# installs exactly these and changes nothing else. Bumping one is a commit.
+tooling_uv_tools:
+  - name: ansible-builder
+    version: "3.1.1"
+  - name: ansible-navigator
+    version: "26.4.0"
+  - name: devstart
+    version: "0.3.2"
+  - name: graphifyy
+    version: "0.9.35"
+  - name: linux-mcp-server
+    version: "1.4.1"
+  - name: mistral-vibe
+    version: "2.24.0"
+  - name: notebooklm-py
+    version: "0.8.0rc1"
+  - name: omega13
+    version: "2.3.0"
+  - name: rubygemdb
+    version: "0.1.0"
+  - name: seishun
+    version: "0.1.0"

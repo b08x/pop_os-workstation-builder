@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role: tooling
+# Purpose: install user-scope CLI tooling declared in host_vars
+#
+# Proof of concept. uv only. See docs/TOOLING-ROLE-PROOF.md.
+#
+# This role has no ordering dependency on `dotfiles`. It reads its list from
+# inventory, not from $HOME, so it works on a machine where the yadm clone has
+# not happened -- which is every machine on its first run.
+# ============================================================================
+
+- name: Assert a target user was supplied
+  ansible.builtin.assert:
+    that:
+      - tooling_user is defined
+      - tooling_user | length > 0
+    fail_msg: >-
+      tooling_user must be set so tools are installed into a real account
+      rather than whichever user Ansible connected as.
+  tags: [always]
+
+- name: Resolve the target user's home directory
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ tooling_user }}"
+  tags: [tooling]
+
+- name: Set tooling facts
+  ansible.builtin.set_fact:
+    tooling_home: "{{ ansible_facts.getent_passwd[tooling_user][4] }}"
+    # Becoming a user you already are costs a sudo round trip per task and can
+    # trip the unprivileged-to-unprivileged temp file problem. Only become
+    # when the account actually differs.
+    tooling_become: "{{ tooling_user != ansible_user_id }}"
+  tags: [tooling]
+
+- name: Install Python CLI tooling with uv
+  when:
+    - tooling_manage | bool
+    - tooling_manage_uv | bool
+  ansible.builtin.include_tasks: uv.yml
+  tags: [tooling, uv, python]

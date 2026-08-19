@@ -1,0 +1,177 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# uv: pinned install, then the tools declared in host_vars.
+#
+# The two things this does that the bash bootstrap cannot:
+#   1. Installs a pinned, checksummed uv instead of curl-piping install.sh at
+#      floating latest.
+#   2. Compares the declared list against `uv tool list` and acts only on the
+#      difference, so a second run is genuinely a no-op and --check works.
+# ============================================================================
+
+- name: Warn when uv is unpinned by checksum
+  when: tooling_uv_checksum | length == 0
+  ansible.builtin.debug:
+    msg: |
+      tooling_uv_checksum is empty, so uv {{ tooling_uv_version }} will be
+      downloaded without verification. Get the digest with:
+        curl -sSL {{ tooling_uv_base_url }}/{{ tooling_uv_version }}/{{ tooling_uv_asset }}.sha256
+
+- name: Read the installed uv version
+  become: "{{ tooling_become }}"
+  become_user: "{{ tooling_user }}"
+  ansible.builtin.command:
+    argv: ["{{ tooling_home }}/{{ tooling_uv_install_dir }}/uv", --version]
+  register: tooling_uv_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Provision uv
+  # `uv --version` prints e.g. "uv 0.12.3 (abcdef 2026-07-30)".
+  when: tooling_uv_version not in (tooling_uv_installed.stdout | default(''))
+  block:
+
+    - name: Ensure the user binary directory exists
+      become: "{{ tooling_become }}"
+      become_user: "{{ tooling_user }}"
+      ansible.builtin.file:
+        path: "{{ tooling_home }}/{{ tooling_uv_install_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Create a staging directory
+      become: "{{ tooling_become }}"
+      become_user: "{{ tooling_user }}"
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: uv-install
+      register: tooling_uv_tmp
+
+    - name: Download uv {{ tooling_uv_version }}
+      become: "{{ tooling_become }}"
+      become_user: "{{ tooling_user }}"
+      ansible.builtin.get_url:
+        url: "{{ tooling_uv_base_url }}/{{ tooling_uv_version }}/{{ tooling_uv_asset }}"
+        dest: "{{ tooling_uv_tmp.path }}/{{ tooling_uv_asset }}"
+        checksum: "{{ ('sha256:' + tooling_uv_checksum) if tooling_uv_checksum | length > 0 else omit }}"
+        mode: "0644"
+
+    - name: Unpack uv
+      become: "{{ tooling_become }}"
+      become_user: "{{ tooling_user }}"
+      ansible.builtin.unarchive:
+        src: "{{ tooling_uv_tmp.path }}/{{ tooling_uv_asset }}"
+        dest: "{{ tooling_uv_tmp.path }}"
+        remote_src: true
+        extra_opts: [--strip-components=1]
+
+    - name: Install the uv binaries
+      become: "{{ tooling_become }}"
+      become_user: "{{ tooling_user }}"
+      ansible.builtin.copy:
+        src: "{{ tooling_uv_tmp.path }}/{{ item }}"
+        dest: "{{ tooling_home }}/{{ tooling_uv_install_dir }}/{{ item }}"
+        remote_src: true
+        mode: "0755"
+      loop: [uv, uvx]
+
+  always:
+    - name: Remove the staging directory
+      when: tooling_uv_tmp.path is defined
+      become: "{{ tooling_become }}"
+      become_user: "{{ tooling_user }}"
+      ansible.builtin.file:
+        path: "{{ tooling_uv_tmp.path }}"
+        state: absent
+
+# --------------------------------------------------------------------------
+# Tools
+# --------------------------------------------------------------------------
+
+- name: Report an empty tool list
+  when: tooling_uv_tools | length == 0
+  ansible.builtin.debug:
+    msg: >-
+      tooling_uv_tools is empty for {{ inventory_hostname }}; no Python CLI
+      tools were installed. Declare them in inventory/host_vars/{{ inventory_hostname }}.yml.
+
+- name: Install uv tools
+  when: tooling_uv_tools | length > 0
+  block:
+
+    - name: Read the currently installed tools
+      become: "{{ tooling_become }}"
+      become_user: "{{ tooling_user }}"
+      ansible.builtin.command:
+        argv: ["{{ tooling_home }}/{{ tooling_uv_install_dir }}/uv", tool, list]
+      register: tooling_uv_current
+      changed_when: false
+      check_mode: false
+
+    # `uv tool list` prints "name vX.Y.Z" per tool, then an indented
+    # "- executable" line per entry point. Keep the former, drop the latter,
+    # and reduce to {name: version}.
+    - name: Build the installed set
+      ansible.builtin.set_fact:
+        tooling_uv_installed_map: >-
+          {{ dict(
+               tooling_uv_current.stdout_lines
+               | select('match', '^\S+\s+v[0-9]')
+               | map('regex_replace', '^(\S+)\s+v(\S+).*$', '\1=\2')
+               | map('split', '=')
+             ) }}
+
+    - name: Start with an empty reconciliation list
+      ansible.builtin.set_fact:
+        tooling_uv_todo: []
+
+    # A tool needs work when it is absent, or when the declared version
+    # differs from the one installed. Git-sourced entries carry
+    # no comparable version, so they are reconciled only when missing --
+    # moving a rev is a deliberate act, not something provisioning decides.
+    - name: Determine which tools need work
+      ansible.builtin.set_fact:
+        tooling_uv_todo: "{{ tooling_uv_todo + [item] }}"
+      when: >-
+        item.name not in tooling_uv_installed_map
+        or (item.version is defined
+            and tooling_uv_installed_map[item.name] != item.version)
+      loop: "{{ tooling_uv_tools }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Report the plan
+      ansible.builtin.debug:
+        msg: >-
+          {{ tooling_uv_tools | length }} tools declared,
+          {{ tooling_uv_todo | length }} to reconcile
+          {{ '(' + (tooling_uv_todo | map(attribute='name') | join(', ')) + ')'
+             if tooling_uv_todo | length > 0 else '' }}
+
+    # changed_when is unconditional because the loop only ever receives tools
+    # already determined to be out of sync. The idempotency lives in the
+    # comparison above, not in parsing uv's output.
+    - name: Install and pin uv tools
+      become: "{{ tooling_become }}"
+      become_user: "{{ tooling_user }}"
+      environment:
+        PATH: "{{ tooling_home }}/{{ tooling_uv_install_dir }}:{{ ansible_env.PATH }}"
+        # Without this, a tool that transitively depends on torch drags the
+        # whole CUDA userspace into its venv. See defaults/main.yml.
+        UV_TORCH_BACKEND: "{{ tooling_uv_torch_backend }}"
+        UV_PYTHON_PREFERENCE: "{{ tooling_uv_python_preference }}"
+      ansible.builtin.command:
+        argv: >-
+          {{ [tooling_home ~ '/' ~ tooling_uv_install_dir ~ '/uv', 'tool', 'install']
+             + (['--upgrade'] if tooling_uv_state == 'latest' else [])
+             + (item.with | default([]) | map('regex_replace', '^(.*)$', '--with=\1') | list)
+             + [
+                 ('git+' ~ item.git ~ '@' ~ item.rev) if item.git is defined
+                 else (item.name ~ ('==' ~ item.version if item.version is defined else ''))
+               ] }}
+      loop: "{{ tooling_uv_todo }}"
+      loop_control:
+        label: "{{ item.name }}{{ '==' ~ item.version if item.version is defined else '' }}"
+      changed_when: true

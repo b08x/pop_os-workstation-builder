@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Role defaults: tooling
+#
+# Installs user-scope CLI tooling. Proof of concept -- uv only. See
+# docs/TOOLING-ROLE-PROOF.md.
+#
+# The list lives in host_vars, not in yadm. yadm is scoped to authored content
+# -- shell, agent skills, app configs -- plus anything a tool reads from a
+# fixed $HOME path. A version-pinned list of packages is neither; it is a
+# description of installs, and installs are Ansible's. See
+# docs/ANSIBLE-AND-YADM.md.
+#
+# The role does not need root. become_user reaches $HOME perfectly well.
+# ============================================================================
+
+tooling_manage: true
+
+# Whose $HOME. Set from workstation_user in group_vars.
+tooling_user: ""
+
+# --- uv ---------------------------------------------------------------------
+tooling_manage_uv: true
+
+# Pin uv explicitly. It currently arrives from Astral's install.sh at floating
+# latest, which makes the foundation of the whole Python strategy the least
+# pinned thing in it.
+#
+# Available Python downloads are frozen per uv release, so this pin also
+# decides which CPythons uv can install. Bump deliberately.
+tooling_uv_version: "0.12.3"
+tooling_uv_asset: "uv-x86_64-unknown-linux-gnu.tar.gz"
+tooling_uv_base_url: "https://github.com/astral-sh/uv/releases/download"
+
+# sha256 of the asset above. Obtain with:
+#   curl -sSL {{ tooling_uv_base_url }}/{{ tooling_uv_version }}/{{ tooling_uv_asset }}.sha256
+# Empty means "download unverified", which the role warns about rather than
+# silently accepting.
+tooling_uv_checksum: ""
+
+tooling_uv_install_dir: .local/bin
+
+# The tools themselves. Empty here on purpose -- this is per-host data and
+# belongs in inventory/host_vars/<host>.yml, which is what host_vars is for.
+#
+# Structured entries rather than a line format: item 2a needed something that
+# could express a PyPI pin, a git ref, and extras at once, and inventing a
+# syntax for that is work Ansible has already done.
+#
+#   tooling_uv_tools:
+#     - name: ansible-builder
+#       version: "3.1.1"
+#     - name: example
+#       git: "https://github.com/b08x/example"
+#       rev: "v0.1.0"
+#     - name: omega13
+#       version: "2.3.0"
+#       with: ["extra-dep"]
+tooling_uv_tools: []
+
+# `present` installs the pinned version and leaves it alone. `latest`
+# re-resolves every run.
+#
+# Deliberately `present`. The bash bootstrap runs `uv tool install --upgrade`
+# on every pass, which makes provisioning non-deterministic and breaks the
+# "second run in under five seconds with zero mutations" line in the yadm
+# rebuild backlog's definition of done. Updating should be a separate,
+# deliberate act with a git record -- not a side effect of provisioning.
+tooling_uv_state: present
+
+# Applied to every uv invocation.
+#
+# `auto` queries the installed driver and picks the matching PyTorch index,
+# falling back to CPU-only wheels where there is no GPU. Without it, any tool
+# that transitively depends on torch pulls the Linux default CUDA build --
+# observed live on popvm as ~5 GB of cu13 wheels into a CLI tool's venv on a
+# guest with no GPU.
+#
+# The uv docs say --torch-backend is uv pip only. That is stale; it is
+# accepted by `uv tool install` as of 0.12.3.
+tooling_uv_torch_backend: auto
+
+# Prefer the interpreter the distribution ships; download a managed CPython
+# only when something pins a version the system lacks. Note uv's own default
+# is `managed`, which prefers uv's interpreters -- not what is wanted here.
+tooling_uv_python_preference: system

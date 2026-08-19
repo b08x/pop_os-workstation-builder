@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: MIT-0
+---
+# No handlers. Installing a user-space CLI tool restarts nothing; the file is
+# here for symmetry with the other roles and as somewhere obvious to put a
+# shell-rehash or systemd --user reload if a later ecosystem needs one.
+[]

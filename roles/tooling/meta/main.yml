@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  role_name: tooling
+  namespace: b08x
+  author: b08x
+  description: >-
+    Install user-scope CLI tooling from yadm-owned manifests. Ansible supplies
+    the mechanism, Layer 2 supplies the list. Proof of concept -- uv only.
+  license: MIT-0
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [uv, python, tooling, userspace]
+
+# Deliberately empty rather than depending on `dotfiles`. The manifests this
+# role reads are placed by that role, but expressing it as a dependency would
+# make `--tags tooling` drag a yadm clone along with it. The ordering lives in
+# the playbook; the missing-manifest case is handled explicitly instead.
+dependencies: []

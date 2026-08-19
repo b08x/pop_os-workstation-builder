@@ -39,3 +39,16 @@ dotfiles_repo: "git@github.com:b08x/dots.git"
 dotfiles_run_bootstrap: true
 # Leave false until ~/.ssh is restored on the target.
 dotfiles_require_clone: false
+
+# --- tooling ---------------------------------------------------------------
+# Installs are Ansible's; yadm keeps authored content. The tool lists are
+# per-host and live in inventory/host_vars/<host>.yml.
+# See docs/TOOLING-ROLE-PROOF.md before extending this to other ecosystems.
+tooling_user: "{{ workstation_user }}"
+
+# Pinned deliberately. uv arriving from install.sh at floating latest made the
+# foundation of the Python strategy the least pinned thing in it. Available
+# Python downloads are frozen per uv release, so this also decides which
+# CPythons uv can install.
+tooling_uv_version: "0.12.3"
+tooling_uv_checksum: ""  # curl -sSL <base>/<version>/<asset>.sha256
