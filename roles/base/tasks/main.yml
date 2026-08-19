@@ -70,3 +70,35 @@
     update_cache: true
     cache_valid_time: "{{ base_apt_cache_valid_time }}"
   tags: [packages, cli, base]
+
+# --------------------------------------------------------------------------
+# System Tuning (Memory & ZRAM)
+# --------------------------------------------------------------------------
+
+- name: Configure vm.swappiness for optimal zram latency
+  become: true
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: "10"
+    state: present
+    sysctl_set: true
+    reload: true
+  tags: [tuning, sysctl, memory, base]
+
+- name: Configure zram-generator with zstd and high priority
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/systemd/zram-generator.conf
+    content: |
+      # Managed by b08x.workstation.base -- do not edit by hand.
+      [zram0]
+      zram-size = min(ram, 8192)
+      compression-algorithm = zstd
+      swap-priority = 100
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - base reload systemd
+    - base restart zram0
+  tags: [tuning, zram, swap, base]
