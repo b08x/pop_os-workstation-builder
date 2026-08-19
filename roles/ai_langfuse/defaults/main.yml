@@ -1,0 +1,5 @@
+---
+ai_langfuse_db_password: "{{ vault_postgres_password | default(change_me_in_vault) }}"
+ai_langfuse_clickhouse_password: "{{ vault_clickhouse_password | default(change_me_in_vault) }}"
+ai_langfuse_nextauth_secret: "generate_a_secret"
+ai_langfuse_salt: "generate_a_salt"

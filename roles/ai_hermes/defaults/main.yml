@@ -1,0 +1,3 @@
+---
+ai_hermes_openrouter_api_key: "set_in_vault"
+ai_hermes_telegram_bot_token: "set_in_vault"
