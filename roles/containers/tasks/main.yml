@@ -60,3 +60,53 @@
   args:
     creates: "/var/lib/systemd/linger/{{ containers_user }}"
   tags: [systemd, lingering, podman, containers]
+
+# --------------------------------------------------------------------------
+# GPU readiness
+#
+# The hardware role generates the CDI spec and runs before this one. This is
+# a check, not a second implementation -- the failure it catches is a machine
+# that has podman and an NVIDIA GPU but no way to join them, which otherwise
+# only surfaces the first time a container silently can't see the device.
+# --------------------------------------------------------------------------
+- name: Verify GPU containers are actually usable
+  when:
+    - containers_install_podman | bool
+    - containers_verify_gpu | bool
+  tags: [gpu, cdi, podman, containers, verify]
+  block:
+
+    - name: Look for an NVIDIA GPU
+      ansible.builtin.command:
+        argv: [nvidia-smi, --query-gpu=name, "--format=csv,noheader"]
+      register: containers_gpu_present
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Look for the CDI specification
+      ansible.builtin.stat:
+        path: "{{ containers_cdi_spec_path }}"
+      register: containers_cdi_spec
+
+    - name: Report a GPU with no CDI specification
+      when:
+        - containers_gpu_present.rc == 0
+        - not containers_cdi_spec.stat.exists
+      ansible.builtin.debug:
+        msg: |
+          {{ containers_gpu_present.stdout | trim }} is present and podman is
+          installed, but {{ containers_cdi_spec_path }} does not exist.
+          GPU containers will fail with "no such device".
+          Fix: ansible-playbook playbooks/workstation.yml --tags cdi
+
+    - name: Report GPU containers as ready
+      when:
+        - containers_gpu_present.rc == 0
+        - containers_cdi_spec.stat.exists
+      ansible.builtin.debug:
+        msg: |
+          GPU containers ready -- {{ containers_gpu_present.stdout | trim }}.
+          Smoke test:
+            podman run --rm --device nvidia.com/gpu=all \
+              nvidia/cuda:13.0-base-ubuntu24.04 nvidia-smi

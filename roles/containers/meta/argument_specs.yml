@@ -41,3 +41,15 @@ argument_specs:
         elements: str
         required: false
         description: Supplementary groups for hardware access.
+      containers_verify_gpu:
+        type: bool
+        required: false
+        default: true
+        description:
+          - Report when a GPU is present but no CDI specification exists.
+          - Read-only. Generation belongs to the hardware role, which runs first.
+      containers_cdi_spec_path:
+        type: str
+        required: false
+        default: /etc/cdi/nvidia.yaml
+        description: CDI specification checked by the GPU readiness report.
