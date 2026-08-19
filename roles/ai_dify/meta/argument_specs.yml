@@ -1,0 +1,14 @@
+---
+argument_specs:
+  main:
+    short_description: Dify LLM orchestration platform.
+    description: Deploys Dify components (api, worker, web, sandbox) connected to ai_databases.
+    options:
+      ai_dify_db_password:
+        type: str
+        default: change_me_in_vault
+        description: Password to connect to the PostgreSQL database.
+      ai_dify_secret_key:
+        type: str
+        default: generate_a_secret_for_dify
+        description: Flask secret key for the Dify API.

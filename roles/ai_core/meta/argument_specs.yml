@@ -1,0 +1,6 @@
+---
+argument_specs:
+  main:
+    short_description: Core infrastructure for the AI Quadlet ecosystem.
+    description: Creates the ai-svc user, configures directory paths, and sets up the ai-net DNS-enabled podman network.
+    options: {}

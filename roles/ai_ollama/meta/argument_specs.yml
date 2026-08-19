@@ -1,0 +1,6 @@
+---
+argument_specs:
+  main:
+    short_description: Hardware-accelerated Ollama inference engine.
+    description: Deploys an Ollama Quadlet with DRI passthrough for local GPU acceleration.
+    options: {}

@@ -1,0 +1,22 @@
+---
+argument_specs:
+  main:
+    short_description: Langfuse LLM telemetry and observability.
+    description: Deploys Langfuse web server connected to Postgres and Clickhouse.
+    options:
+      ai_langfuse_db_password:
+        type: str
+        default: change_me_in_vault
+        description: Password to connect to the PostgreSQL database.
+      ai_langfuse_clickhouse_password:
+        type: str
+        default: change_me_in_vault
+        description: Password to connect to the Clickhouse database.
+      ai_langfuse_nextauth_secret:
+        type: str
+        default: generate_a_secret
+        description: Secret for NextAuth session encryption.
+      ai_langfuse_salt:
+        type: str
+        default: generate_a_salt
+        description: Cryptographic salt value.

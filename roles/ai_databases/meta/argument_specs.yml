@@ -1,0 +1,22 @@
+---
+argument_specs:
+  main:
+    short_description: Stateful data tier for AI services.
+    description: Deploys Postgres (pgvector), Redis, and Clickhouse as Quadlets attached to ai-net.
+    options:
+      ai_databases_postgres_user:
+        type: str
+        default: postgres
+        description: The username for the PostgreSQL database.
+      ai_databases_postgres_password:
+        type: str
+        default: change_me_in_vault
+        description: The password for the PostgreSQL database.
+      ai_databases_clickhouse_user:
+        type: str
+        default: clickhouse
+        description: The username for the Clickhouse database.
+      ai_databases_clickhouse_password:
+        type: str
+        default: change_me_in_vault
+        description: The password for the Clickhouse database.

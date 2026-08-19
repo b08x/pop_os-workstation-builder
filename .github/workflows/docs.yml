@@ -1,0 +1,30 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main, development ]
+  pull_request:
+
+jobs:
+  verify-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          
+      - name: Generate Documentation
+        run: ./scripts/generate_docs.rb
+        
+      - name: Verify Documentation Freshness
+        run: |
+          if [[ -n "$(git status --porcelain docs/)" ]]; then
+            echo "::error::Documentation is out of sync! Run ./scripts/generate_docs.rb and commit the changes."
+            git diff
+            exit 1
+          else
+            echo "Documentation is up to date."
+          fi

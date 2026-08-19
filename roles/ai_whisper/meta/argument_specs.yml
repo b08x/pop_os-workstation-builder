@@ -1,0 +1,6 @@
+---
+argument_specs:
+  main:
+    short_description: Local Whisper.cpp audio transcription.
+    description: Dynamically builds and deploys a Whisper.cpp container utilizing intel/oneapi-basekit compilers.
+    options: {}

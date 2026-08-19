@@ -1,0 +1,14 @@
+---
+argument_specs:
+  main:
+    short_description: Hermes agent API gateway and dashboard.
+    description: Deploys the Hermes workspace agent infrastructure.
+    options:
+      ai_hermes_openrouter_api_key:
+        type: str
+        default: set_in_vault
+        description: API key for OpenRouter LLM routing.
+      ai_hermes_telegram_bot_token:
+        type: str
+        default: set_in_vault
+        description: API token for Telegram bot integration.
