@@ -1,0 +1,166 @@
+# SPDX-License-Identifier: MIT-0
+---
+# ============================================================================
+# Generate the CDI specification for GPU containers.
+#
+# Why this file exists: installing nvidia-container-toolkit is necessary but
+# not sufficient. Until a CDI spec exists, `podman run --device
+# nvidia.com/gpu=all` fails with "no such device", and the collection's
+# stated position -- that CUDA belongs in a container rather than on the host
+# (see hardware_install_host_cuda in defaults/main.yml) -- has no working
+# path behind it.
+#
+# CDI is the rootless-friendly mechanism. It replaces the older
+# --hook/--gpus plumbing that needed a root daemon, which is why it suits a
+# podman-first machine.
+#
+# The spec pins driver library paths and device nodes, so it goes stale on
+# every driver upgrade. Newer toolkit packages ship nvidia-cdi-refresh to
+# regenerate on driver change; where that unit exists we enable it and let it
+# own the job, and where it does not we regenerate here and say so.
+# ============================================================================
+
+- name: Locate nvidia-ctk
+  ansible.builtin.command:
+    argv: [which, nvidia-ctk]
+  register: hardware_nvidia_ctk
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Explain a missing nvidia-ctk
+  when: hardware_nvidia_ctk.rc != 0
+  ansible.builtin.debug:
+    msg: |
+      nvidia-ctk not found, so no CDI specification was generated.
+      GPU containers will not work until it is. This usually means
+      nvidia-container-toolkit had no install candidate -- check the earlier
+      "Skipped, no install candidate" output from this role.
+
+# nvidia-ctk needs a driver it can actually query. On a machine where the
+# driver is installed but not yet loaded -- the common case immediately after
+# a fresh provision, before the reboot -- generation produces a spec
+# describing devices that do not exist. Better to skip and say why.
+- name: Check whether the NVIDIA driver is loaded
+  when: hardware_nvidia_ctk.rc == 0
+  ansible.builtin.command:
+    argv: [nvidia-smi, --query-gpu=name, "--format=csv,noheader"]
+  register: hardware_nvidia_smi
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Defer CDI generation until the driver is loaded
+  when:
+    - hardware_nvidia_ctk.rc == 0
+    - hardware_nvidia_smi.rc != 0
+  ansible.builtin.debug:
+    msg: |
+      The NVIDIA driver is installed but nvidia-smi cannot talk to it, which
+      is expected before the first reboot after a driver install.
+      CDI generation is skipped this run. Reboot, then:
+        ansible-playbook playbooks/workstation.yml --tags cdi
+
+- name: Provision the CDI specification
+  when:
+    - hardware_nvidia_ctk.rc == 0
+    - hardware_nvidia_smi.rc == 0
+  block:
+
+    - name: Ensure the CDI directory exists
+      become: true
+      ansible.builtin.file:
+        path: "{{ hardware_cdi_spec_path | dirname }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    # Generated to a temp path and compared, rather than written in place.
+    # nvidia-ctk has no --check mode and always rewrites, so writing directly
+    # would report changed on every run and make the play non-idempotent.
+    - name: Generate a candidate CDI specification
+      become: true
+      ansible.builtin.command:
+        argv:
+          - nvidia-ctk
+          - cdi
+          - generate
+          - "--mode={{ hardware_cdi_mode }}"
+          - "--output={{ hardware_cdi_spec_path }}.candidate"
+      changed_when: false
+
+    - name: Compare the candidate against the installed specification
+      become: true
+      ansible.builtin.command:
+        argv:
+          - cmp
+          - -s
+          - "{{ hardware_cdi_spec_path }}.candidate"
+          - "{{ hardware_cdi_spec_path }}"
+      register: hardware_cdi_diff
+      changed_when: false
+      failed_when: false
+
+    - name: Install the CDI specification
+      when: hardware_cdi_diff.rc != 0
+      become: true
+      ansible.builtin.copy:
+        src: "{{ hardware_cdi_spec_path }}.candidate"
+        dest: "{{ hardware_cdi_spec_path }}"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Remove the candidate
+      become: true
+      ansible.builtin.file:
+        path: "{{ hardware_cdi_spec_path }}.candidate"
+        state: absent
+      changed_when: false
+
+    # The spec describes driver library paths. A driver upgrade invalidates
+    # it, and the failure mode is a container that starts and then cannot see
+    # the GPU -- quiet, and easy to misattribute to the container image.
+    - name: Look for the toolkit's own refresh unit
+      ansible.builtin.stat:
+        path: /usr/lib/systemd/system/nvidia-cdi-refresh.service
+      register: hardware_cdi_refresh_unit
+
+    - name: Let nvidia-cdi-refresh own regeneration on driver change
+      when: hardware_cdi_refresh_unit.stat.exists
+      become: true
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+      loop:
+        - nvidia-cdi-refresh.path
+        - nvidia-cdi-refresh.service
+      failed_when: false
+
+    - name: Warn that CDI regeneration is manual on this host
+      when: not hardware_cdi_refresh_unit.stat.exists
+      ansible.builtin.debug:
+        msg: |
+          This nvidia-container-toolkit does not ship nvidia-cdi-refresh, so
+          {{ hardware_cdi_spec_path }} will go stale the next time the NVIDIA
+          driver is upgraded. Symptom: containers start but see no GPU.
+          After any driver upgrade, re-run:
+            ansible-playbook playbooks/workstation.yml --tags cdi
+
+    - name: Report the devices CDI now exposes
+      become: true
+      ansible.builtin.command:
+        argv: [nvidia-ctk, cdi, list]
+      register: hardware_cdi_list
+      changed_when: false
+
+    - name: Show the CDI device list
+      ansible.builtin.debug:
+        msg: |
+          CDI specification installed at {{ hardware_cdi_spec_path }}.
+          Verify with:
+            podman run --rm --device nvidia.com/gpu=all \
+              nvidia/cuda:{{ hardware_cdi_smoke_test_tag }} nvidia-smi
+          {{ hardware_cdi_list.stdout }}

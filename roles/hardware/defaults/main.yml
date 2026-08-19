@@ -60,6 +60,27 @@ hardware_nvidia_container_packages:
   - nvidia-container-toolkit
   - libnvidia-container-tools
 
+# Generate /etc/cdi/nvidia.yaml so containers can request the GPU.
+#
+# Installing nvidia-container-toolkit gets you the tooling; the CDI spec is
+# what actually makes `podman run --device nvidia.com/gpu=all` resolve. CDI is
+# the rootless-friendly path and is why this works without the Docker daemon.
+#
+# The spec records driver library paths, so it is invalidated by every driver
+# upgrade. Where nvidia-cdi-refresh ships with the toolkit the role enables it
+# and lets it own regeneration; where it does not, re-run with --tags cdi
+# after any driver change.
+hardware_generate_cdi_spec: true
+hardware_cdi_spec_path: /etc/cdi/nvidia.yaml
+
+# nvidia-ctk discovery mode. `auto` picks between nvml and wsl by inspecting
+# the host, which is right for bare metal and for a passthrough guest alike.
+hardware_cdi_mode: auto
+
+# Image tag quoted in the post-generation smoke-test hint. Purely cosmetic --
+# it appears in a debug message and pulls nothing.
+hardware_cdi_smoke_test_tag: "13.0-base-ubuntu24.04"
+
 # Host CUDA toolkit. Default OFF, deliberately, for two reasons:
 #
 #   1. System76: "Basic CUDA runtime functionality is installed automatically

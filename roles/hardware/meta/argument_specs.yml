@@ -62,6 +62,31 @@ argument_specs:
         elements: str
         required: false
         description: Packages granting containers access to the GPU.
+      hardware_generate_cdi_spec:
+        type: bool
+        required: false
+        default: true
+        description:
+          - Generate the CDI specification that lets containers request the GPU.
+          - Without it, nvidia-container-toolkit is installed but
+            "podman run --device nvidia.com/gpu=all" fails.
+      hardware_cdi_spec_path:
+        type: str
+        required: false
+        default: /etc/cdi/nvidia.yaml
+        description: Destination for the generated CDI specification.
+      hardware_cdi_mode:
+        type: str
+        required: false
+        default: auto
+        choices: [auto, nvml, wsl, management, gds, mofed, csv]
+        description: Discovery mode passed to "nvidia-ctk cdi generate".
+      hardware_cdi_smoke_test_tag:
+        type: str
+        required: false
+        description:
+          - nvidia/cuda image tag quoted in the post-generation hint.
+          - Cosmetic; appears in a debug message and pulls nothing.
       hardware_install_host_cuda:
         type: bool
         required: false

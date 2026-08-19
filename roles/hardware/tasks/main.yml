@@ -29,6 +29,16 @@
     optional_description: NVIDIA container toolkit
   tags: [nvidia, containers, hardware, packages]
 
+# Installing the toolkit is not enough on its own -- without a CDI spec,
+# `podman run --device nvidia.com/gpu=all` fails and the container-CUDA
+# position this role takes has nothing behind it. See nvidia_cdi.yml.
+- name: Generate the CDI specification for GPU containers
+  when:
+    - hardware_install_nvidia | bool
+    - hardware_generate_cdi_spec | bool
+  ansible.builtin.include_tasks: nvidia_cdi.yml
+  tags: [nvidia, containers, cdi, gpu, hardware]
+
 # Off by default. See defaults/main.yml for the two reasons why.
 - name: Install the host CUDA toolkit
   when:
