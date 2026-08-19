@@ -1,0 +1,16 @@
+[Unit]
+Description=Dify API
+After=ai-postgres.service ai-redis.service network-online.target
+
+[Container]
+Image=docker.io/langgenius/dify-api:latest
+Network=ai-net.network
+Volume=/opt/ai/data/dify-storage:/app/api/storage:Z
+EnvironmentFile=/opt/ai/config/dify.env
+Environment=MODE=api
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

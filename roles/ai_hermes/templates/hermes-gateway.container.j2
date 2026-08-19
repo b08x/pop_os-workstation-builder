@@ -1,0 +1,16 @@
+[Unit]
+Description=Hermes Agent Gateway
+After=network-online.target
+
+[Container]
+Image=docker.io/nousresearch/hermes-agent:latest
+Network=ai-net.network
+Volume=/opt/ai/data/hermes:/opt/data:Z
+EnvironmentFile=/opt/ai/config/hermes.env
+Exec=gateway run
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

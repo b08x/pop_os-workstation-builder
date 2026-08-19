@@ -1,0 +1,15 @@
+[Unit]
+Description=Dify Web Frontend
+After=dify-api.service network-online.target
+
+[Container]
+Image=docker.io/langgenius/dify-web:latest
+Network=ai-net.network
+EnvironmentFile=/opt/ai/config/dify.env
+PublishPort=3001:3000
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

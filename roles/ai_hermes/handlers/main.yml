@@ -1,0 +1,9 @@
+---
+- name: restart hermes
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+    daemon_reload: true
+  loop:
+    - hermes-gateway.service
+    - hermes-dashboard.service

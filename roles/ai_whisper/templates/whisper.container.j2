@@ -1,0 +1,16 @@
+[Unit]
+Description=Whisper.cpp Server Container
+After=network-online.target
+
+[Container]
+Image=localhost/whisper-server:local
+Network=ai-net.network
+AddDevice=/dev/dri
+# Map external models volume if desired
+# Volume=/opt/ai/data/whisper:/workspace/models:Z
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

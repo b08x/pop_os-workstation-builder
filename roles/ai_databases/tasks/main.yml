@@ -1,0 +1,43 @@
+---
+- name: Ensure database data directories exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default(ai-svc) }}"
+    group: "{{ item.group | default(ai-svc) }}"
+    mode: "0755"
+  loop:
+    - { path: /opt/ai/data/postgres, owner: "999", group: "999" } # Standard postgres UID
+    - { path: /opt/ai/data/redis, owner: "999", group: "999" }
+    - { path: /opt/ai/data/clickhouse, owner: "101", group: "101" } # Standard clickhouse UID
+
+- name: Deploy Database Secrets (Vault)
+  ansible.builtin.template:
+    src: databases.env.j2
+    dest: /opt/ai/config/databases.env
+    owner: root
+    group: ai-svc
+    mode: "0640"
+  notify: restart databases
+
+- name: Deploy Database Quadlets
+  ansible.builtin.template:
+    src: "{{ item }}.container.j2"
+    dest: "/etc/containers/systemd/{{ item }}.container"
+    mode: "0644"
+  loop:
+    - ai-postgres
+    - ai-redis
+    - ai-clickhouse
+  notify: restart databases
+
+- name: Enable and start Database services
+  ansible.builtin.systemd:
+    name: "{{ item }}.service"
+    state: started
+    enabled: true
+    daemon_reload: true
+  loop:
+    - ai-postgres
+    - ai-redis
+    - ai-clickhouse

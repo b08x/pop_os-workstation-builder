@@ -1,0 +1,15 @@
+[Unit]
+Description=AI ClickHouse (Langfuse Analytics)
+After=network-online.target
+
+[Container]
+Image=docker.io/clickhouse/clickhouse-server:latest
+Network=ai-net.network
+Volume=/opt/ai/data/clickhouse:/var/lib/clickhouse:Z
+EnvironmentFile=/opt/ai/config/databases.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

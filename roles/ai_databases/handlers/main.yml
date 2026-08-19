@@ -1,0 +1,10 @@
+---
+- name: restart databases
+  ansible.builtin.systemd:
+    name: "{{ item }}.service"
+    state: restarted
+    daemon_reload: true
+  loop:
+    - ai-postgres
+    - ai-redis
+    - ai-clickhouse

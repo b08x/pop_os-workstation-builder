@@ -1,0 +1,14 @@
+[Unit]
+Description=AI Redis Cache
+After=network-online.target
+
+[Container]
+Image=docker.io/redis:6-alpine
+Network=ai-net.network
+Volume=/opt/ai/data/redis:/data:Z
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

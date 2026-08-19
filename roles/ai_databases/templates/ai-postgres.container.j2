@@ -1,0 +1,16 @@
+[Unit]
+Description=AI Postgres (pgvector)
+After=network-online.target
+
+[Container]
+# pgvector provides the vector DB capabilities needed by Dify and others natively in Postgres
+Image=docker.io/pgvector/pgvector:pg16
+Network=ai-net.network
+Volume=/opt/ai/data/postgres:/var/lib/postgresql/data:Z
+EnvironmentFile=/opt/ai/config/databases.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

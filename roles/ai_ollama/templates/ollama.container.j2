@@ -1,0 +1,18 @@
+[Unit]
+Description=Ollama AI Container
+After=network-online.target
+
+[Container]
+Image=docker.io/ollama/ollama:latest
+Network=ai-net.network
+Volume=/opt/ai/data/ollama:/root/.ollama:Z
+AddDevice=/dev/dri
+# Uncomment below if NVIDIA is needed
+# PodmanArgs=--device nvidia.com/gpu=all
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target

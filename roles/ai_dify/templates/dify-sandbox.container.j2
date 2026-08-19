@@ -1,0 +1,13 @@
+[Unit]
+Description=Dify Python Sandbox
+After=network-online.target
+
+[Container]
+Image=docker.io/langgenius/dify-sandbox:latest
+Network=ai-net.network
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

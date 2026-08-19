@@ -1,0 +1,37 @@
+---
+- name: Ensure AI groups exist
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop: [ai-svc, render, video]
+
+- name: Ensure AI service user exists
+  ansible.builtin.user:
+    name: ai-svc
+    group: ai-svc
+    groups: render,video
+    append: true
+    system: true
+    create_home: false
+
+- name: Create standard AI directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: ai-svc
+    group: ai-svc
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: /opt/ai/data, mode: "0755" }
+    - { path: /opt/ai/config, mode: "0700" }
+    - { path: /opt/ai/build/whisper, mode: "0755" }
+
+- name: Create AI Podman Network Quadlet
+  ansible.builtin.copy:
+    dest: /etc/containers/systemd/ai-net.network
+    content: |
+      [Network]
+      NetworkName=ai-net
+    owner: root
+    mode: "0644"
+  notify: reload systemd

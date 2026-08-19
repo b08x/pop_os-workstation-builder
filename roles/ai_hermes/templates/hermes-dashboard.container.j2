@@ -1,0 +1,18 @@
+[Unit]
+Description=Hermes Agent Dashboard
+After=hermes-gateway.service network-online.target
+
+[Container]
+Image=docker.io/nousresearch/hermes-agent:latest
+Network=ai-net.network
+Volume=/opt/ai/data/hermes:/opt/data:Z
+EnvironmentFile=/opt/ai/config/hermes.env
+Exec=dashboard --host 0.0.0.0 --no-open
+# Dashboard natively expects to talk to gateway over localhost in some setups,
+# or via Gateway URL env vars. ai-net allows it to resolve "hermes-gateway".
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

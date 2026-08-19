@@ -1,0 +1,11 @@
+---
+- name: restart dify
+  ansible.builtin.systemd:
+    name: "{{ item }}.service"
+    state: restarted
+    daemon_reload: true
+  loop:
+    - dify-sandbox
+    - dify-api
+    - dify-worker
+    - dify-web
