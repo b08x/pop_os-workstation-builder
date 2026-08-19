@@ -1,18 +1,22 @@
 # Pop!_OS Workstation Builder — `b08x.workstation`
 
-**An Ansible collection for configuring a fresh Pop!_OS installation, built as an exercise in agentic coding workflows.**
+An exercise in configuration management, technical debt bankruptcy, and agentic coding workflows.
 
-This project was assembled using agentic coding tools — [Hermes Agent](https://hermes-agent.nousresearch.com), Claude Code, [Agy](https://github.com/nicobailey/agy), [Crush](https://github.com/nicobailey/crush), and [OpenCode](https://github.com/nicobailey/opencode) — to explore how AI-assisted development can accelerate infrastructure-as-code authoring. The result is a working collection of Ansible roles that turns a clean Pop!_OS installation into a configured engineering workstation in a single command.
+This repository is fundamentally a migration narrative. If you look through the historical archeological strata of my workstations—starting with Fedora 10, defecting to Arch Linux around 2019 because I convinced myself the AUR was necessary for productivity, retreating back to the stability of Fedora a couple of years ago, and finally arriving here—you'll see a recurring pattern of abstraction leaks. 
 
-The repository itself is the artifact. The process of building it — iterating on role structure, debugging idempotency, refining variable taxonomies, and reviewing best practices through an AI agent — is the point.
+We rebuild our workstations because the root filesystem inevitably degrades into an untamable swamp of conflicting global packages, dangling CUDA toolkits, and unpinned Node utilities. 
+
+So why Pop!_OS now? Because the abstraction leak between traditional enterprise Linux and modern AI hardware finally got too loud. On RHEL/Fedora, wrangling NVIDIA drivers and compute profiles feels like fighting the OS's native semantics. Pop!_OS ships this natively, but I am not configuring it by hand. This time, I am using a swarm of agentic coding tools—[Hermes Agent](https://hermes-agent.nousresearch.com), Claude Code, [Agy](https://github.com/nicobailey/agy), [Crush](https://github.com/nicobailey/crush), and [OpenCode](https://github.com/nicobailey/opencode)—to encode decades of Linux instincts into deterministic YAML. 
+
+The repository itself is the artifact. The process of building it—forcing LLM agents to respect Ansible idempotency rather than hallucinating bash scripts—is the point.
 
 ---
 
-## What This Repository Does
+## The Root Filesystem Entropy Problem
 
-Most developer workstation setup scripts degrade into untamable complexity. Over months of installing AI frameworks, Node utilities, and system tools, your root filesystem swells with dozens of gigabytes of conflicting global packages. When upgrading or refreshing a machine, reproducing that environment requires hours of hunting down unpinned dependencies and broken configurations.
+Most developer workstation setup scripts are just glorified `curl | bash` executioners that accelerate system entropy. When upgrading or refreshing a machine, reproducing the environment requires hours of hunting down broken configurations.
 
-This project fixes workstation bloat by separating machine provisioning into three distinct boundaries: immutable root system packages, encrypted user identity, and per-project isolated environments. By leveraging System76's native system daemons (`system76-power`, `kernelstub`) and APT package taxonomies, this collection turns a clean Pop!_OS installation into a fully configured AI engineering workstation.
+This project fixes workstation bloat by treating machine provisioning as a strict systemic boundary problem. We isolate immutable root system packages, encrypted user identity, and per-project environments. By leveraging System76's native system daemons (`system76-power`, `kernelstub`) rather than fighting them with generic RHEL patterns, this collection turns a clean Pop!_OS installation into a deterministic AI engineering workstation.
 
 ---
 
