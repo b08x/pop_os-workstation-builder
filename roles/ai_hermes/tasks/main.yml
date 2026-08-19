@@ -11,24 +11,27 @@
   ansible.builtin.template:
     src: hermes.env.j2
     dest: /opt/ai/config/hermes.env
+    backup: true
     owner: root
     group: ai-svc
     mode: "0640"
-  notify: restart hermes
+  notify: ai_hermes restart hermes
 
 - name: Deploy Hermes Gateway Quadlet
   ansible.builtin.template:
     src: hermes-gateway.container.j2
     dest: /etc/containers/systemd/hermes-gateway.container
+    backup: true
     mode: "0644"
-  notify: restart hermes
+  notify: ai_hermes restart hermes
 
 - name: Deploy Hermes Dashboard Quadlet
   ansible.builtin.template:
     src: hermes-dashboard.container.j2
     dest: /etc/containers/systemd/hermes-dashboard.container
+    backup: true
     mode: "0644"
-  notify: restart hermes
+  notify: ai_hermes restart hermes
 
 - name: Enable and start Hermes services
   ansible.builtin.systemd:

@@ -29,9 +29,10 @@
 - name: Create AI Podman Network Quadlet
   ansible.builtin.copy:
     dest: /etc/containers/systemd/ai-net.network
+    backup: true
     content: |
       [Network]
       NetworkName=ai-net
     owner: root
     mode: "0644"
-  notify: reload systemd
+  notify: ai_core reload systemd

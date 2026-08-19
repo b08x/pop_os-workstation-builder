@@ -11,8 +11,9 @@
   ansible.builtin.template:
     src: ollama.container.j2
     dest: /etc/containers/systemd/ollama.container
+    backup: true
     mode: "0644"
-  notify: restart ollama
+  notify: ai_ollama restart ollama
 
 - name: Enable and start Ollama
   ansible.builtin.systemd:

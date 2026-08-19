@@ -1,5 +1,6 @@
 ---
 - name: Restart databases
+  listen: ai_databases restart
   ansible.builtin.systemd:
     name: "{{ item }}.service"
     state: restarted

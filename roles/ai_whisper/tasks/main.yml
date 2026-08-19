@@ -3,6 +3,7 @@
   ansible.builtin.template:
     src: Dockerfile.j2
     dest: /opt/ai/build/whisper/Dockerfile
+    backup: true
     mode: "0644"
 
 - name: Build Whisper image on host
@@ -18,8 +19,9 @@
   ansible.builtin.template:
     src: whisper.container.j2
     dest: /etc/containers/systemd/whisper.container
+    backup: true
     mode: "0644"
-  notify: restart whisper
+  notify: ai_whisper restart whisper
 
 - name: Enable and start Whisper
   ansible.builtin.systemd:

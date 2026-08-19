@@ -13,22 +13,24 @@
   ansible.builtin.template:
     src: dify.env.j2
     dest: /opt/ai/config/dify.env
+    backup: true
     owner: root
     group: ai-svc
     mode: "0640"
-  notify: Restart dify
+  notify: ai_dify restart
 
 - name: Deploy Dify Quadlets
   ansible.builtin.template:
     src: "{{ item }}.container.j2"
     dest: "/etc/containers/systemd/{{ item }}.container"
+    backup: true
     mode: "0644"
   loop:
     - dify-api
     - dify-worker
     - dify-web
     - dify-sandbox
-  notify: Restart dify
+  notify: ai_dify restart
 
 - name: Enable and start Dify services
   ansible.builtin.systemd:

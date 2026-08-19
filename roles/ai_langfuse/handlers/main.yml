@@ -1,5 +1,6 @@
 ---
 - name: Restart langfuse
+  listen: ai_langfuse restart
   ansible.builtin.systemd:
     name: langfuse-web.service
     state: restarted

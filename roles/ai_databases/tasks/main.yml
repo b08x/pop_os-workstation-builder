@@ -15,21 +15,23 @@
   ansible.builtin.template:
     src: databases.env.j2
     dest: /opt/ai/config/databases.env
+    backup: true
     owner: root
     group: ai-svc
     mode: "0640"
-  notify: Restart databases
+  notify: ai_databases restart
 
 - name: Deploy Database Quadlets
   ansible.builtin.template:
     src: "{{ item }}.container.j2"
     dest: "/etc/containers/systemd/{{ item }}.container"
+    backup: true
     mode: "0644"
   loop:
     - ai-postgres
     - ai-redis
     - ai-clickhouse
-  notify: Restart databases
+  notify: ai_databases restart
 
 - name: Enable and start Database services
   ansible.builtin.systemd:

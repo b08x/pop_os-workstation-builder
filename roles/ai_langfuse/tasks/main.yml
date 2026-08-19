@@ -3,17 +3,19 @@
   ansible.builtin.template:
     src: langfuse.env.j2
     dest: /opt/ai/config/langfuse.env
+    backup: true
     owner: root
     group: ai-svc
     mode: "0640"
-  notify: Restart langfuse
+  notify: ai_langfuse restart
 
 - name: Deploy Langfuse Quadlets
   ansible.builtin.template:
     src: langfuse-web.container.j2
     dest: /etc/containers/systemd/langfuse-web.container
+    backup: true
     mode: "0644"
-  notify: Restart langfuse
+  notify: ai_langfuse restart
 
 - name: Enable and start Langfuse
   ansible.builtin.systemd:

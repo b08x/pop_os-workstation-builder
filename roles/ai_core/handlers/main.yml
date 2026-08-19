@@ -1,4 +1,5 @@
 ---
 - name: Reload systemd
+  listen: ai_core reload systemd
   ansible.builtin.systemd:
     daemon_reload: true
