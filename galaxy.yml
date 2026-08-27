@@ -37,6 +37,9 @@ issues: https://github.com/b08x/pop_os-workstation-builder/issues
 
 build_ignore:
   - .ansible
+  - .vagrant
+  - Vagrantfile
+  - test
   - .github
   - .gitignore
   - .ansible-lint
