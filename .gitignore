@@ -1,3 +1,5 @@
+.codemap/
+.trackboi/
 # Ansible specific
 *.retry
 .ansible/
@@ -25,3 +27,9 @@ scratch/
 *.log
 
 docs/forensics/
+
+# Vagrant
+.vagrant/
+*.box
+
+*.iso
