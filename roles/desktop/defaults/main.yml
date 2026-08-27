@@ -12,6 +12,7 @@ desktop_font_packages:
   - fonts-noto-color-emoji
   - fonts-inter
 
+  - gnome-font-viewer
 desktop_install_audio: true
 desktop_audio_packages:
   - pipewire
@@ -25,6 +26,7 @@ desktop_audio_packages:
 
 # Real-time scheduling for low-latency audio work.
 # rtprio 95 leaves headroom below the kernel watchdog at 99.
+  - alsa-utils
 desktop_enable_realtime_audio: true
 desktop_realtime_groups:
   - audio

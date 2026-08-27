@@ -56,6 +56,43 @@ hardware_nvidia_packages:
   - system76-driver-nvidia
 
 # Container-side GPU access. This is the supported path for CUDA workloads.
+  - cuda-cccl-13-1
+  - cuda-cccl-13-2
+  - cuda-crt-13-1
+  - cuda-crt-13-2
+  - cuda-cudart-13-1
+  - cuda-cudart-13-2
+  - cuda-cuobjdump-13-1
+  - cuda-cuobjdump-13-2
+  - cuda-cupti-13-1
+  - cuda-cupti-13-2
+  - cuda-cuxxfilt-13-1
+  - cuda-cuxxfilt-13-2
+  - cuda-documentation-13-1
+  - cuda-documentation-13-2
+  - cuda-gdb-13-1
+  - cuda-gdb-13-2
+  - cuda-nsight-13-1
+  - cuda-nsight-13-2
+  - cuda-nvcc-13-1
+  - cuda-nvcc-13-2
+  - cuda-nvdisasm-13-1
+  - cuda-nvdisasm-13-2
+  - cuda-nvprune-13-1
+  - cuda-nvprune-13-2
+  - cuda-nvrtc-13-1
+  - cuda-nvrtc-13-2
+  - cuda-nvtx-13-1
+  - cuda-nvtx-13-2
+  - cuda-opencl-13-1
+  - cuda-opencl-13-2
+  - cuda-profiler-api-13-1
+  - cuda-profiler-api-13-2
+  - cuda-tileiras-13-1
+  - cuda-tileiras-13-2
+  - nvidia-modprobe
+  - nvidia-persistenced
+  - nvidia-settings-legacy-390xx
 hardware_nvidia_container_packages:
   - nvidia-container-toolkit
   - libnvidia-container-tools

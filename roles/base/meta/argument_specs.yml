@@ -12,6 +12,11 @@ argument_specs:
         required: false
         default: America/New_York
         description: IANA timezone name applied via the timezone module.
+      base_nodejs_major_version:
+        type: str
+        required: false
+        default: "22"
+        description: Node.js major version from NodeSource repository (e.g. 20, 22).
       base_disable_coredumps:
         type: bool
         required: false

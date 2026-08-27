@@ -7,6 +7,9 @@
 
 base_timezone: "America/New_York"
 
+# Node.js major version from NodeSource repository (e.g. 20, 22)
+base_nodejs_major_version: "22"
+
 # Disable core dumps: saves storage and keeps PII out of crash traces.
 base_disable_coredumps: true
 
@@ -22,29 +25,278 @@ base_apt_pipeline_depth: 5
 # System-scope CLI and build toolchain. Anything a *user* wants belongs in
 # yadm-managed manifests (Layer 2), not here.
 base_packages:
+  - acl
+  - alien
   - apt-transport-https
+  - arc-theme
+  - aria2
+  - at-spi2-atk
+  - attr
+  - aubio
+  - audit
+  - authselect
+  - autoconf
+  - b43-fwcutter
+  - backuppc
+  - baobab
+  - bash
+  - bash-completion
+  - bind9-host
+  - binutils
+  - bison-doc
+  - bonnie++
+  - borgmatic
+  - bpftop
+  - bpftrace
+  - brightnessctl
+  - brltty
+  - btrfs-compsize
+  - btrfs-progs
   - build-essential
+  - byacc
   - ca-certificates
+  - ccache
+  - chafa
+  - check
+  - chrome-gnome-shell
+  - chromium
+  - chrony
+  - cifs-utils
+  - cockpit
+  - cockpit-files
+  - cockpit-machines
+  - colord
+  - coreutils
+  - cpio
+  - cryptsetup
+  - cscope
+  - cups
+  - cups-browsed
+  - cups-filters
+  - cups-pk-helper
   - curl
+  - deja-dup
+  - devhelp
+  - diffstat
+  - distrobox
+  - dnsmasq
+  - dos2unix
+  - dosfstools
+  - doxygen
+  - dunst
+  - e2fsprogs
+  - efibootmgr
+  - elfutils
+  - ethtool
+  - exfatprogs
+  - fastfetch
+  - feh
+  - flex
+  - foot
+  - fwupd
+  - gavl
+  - gdb-doc
+  - gettext
+  - ghostscript
   - git
   - git-lfs
+  - glibc
+  - glow
+  - glycin-loaders
+  - gnu-which
   - gnupg
+  - gpick
+  - grim
+  - grsync
+  - gtk-doc
+  - gtk4-layer-shell
+  - guestfs-tools
+  - gutenprint
+  - gyp
+  - hddtemp
+  - hdparm
+  - hostname
+  - hplip
   - htop
+  - hunspell
+  - ibus-anthy
+  - ibus-chewing
+  - ibus-hangul
+  - ibus-libpinyin
+  - ibus-m17n
+  - ibus-typing-booster
+  - imlib2
+  - imv
+  - indent
+  - inotify-tools
+  - intel-media-driver
+  - intltool
+  - inxi
+  - iotop-c
+  - iptstate
+  - iputils
+  - irqbalance
+  - jemalloc
   - jq
+  - jupyterlab
+  - kanshi
+  - kbd
+  - kde-dev-scripts
+  - lame
+  - ldc
+  - less
+  - libiberty
+  - lnav
+  - logrotate
+  - loupe
+  - lrzsz
   - lsb-release
+  - lsof
+  - lsscsi
+  - ltrace
+  - mailcap
   - make
+  - man-db
+  - mcelog
+  - mdadm
+  - mediainfo
+  - micro
+  - minicom
+  - mkvtoolnix
+  - mlt
+  - modemmanager
+  - most
+  - movit
+  - mpage
+  - mpv
+  - mtr
+  - nautilus
+  - ncurses
+  - net-tools
+  - network-manager
+  - nfs-utils
+  - nmap
+  - nodejs
+  - nss-mdns
+  - ntfs-3g
+  - nvme-cli
+  - nvtop
+  - obs-studio
+  - onnxruntime
+  - opensc
   - openssh-client
+  - openssh-server
+  - openvpn
+  - packagekit
+  - paps
+  - parted
+  - passwdqc
+  - patch
+  - patchutils
+  - pciutils
+  - pcsc-lite
+  - php8.2
+  - pinfo
   - pkg-config
+  - pkgconf
+  - plocate
+  - plymouth
+  - policycoreutils
+  - policykit-1
+  - ppp
+  - ptyxis
+  - qpdfview
+  - qpwgraph
+  - qt5ct
+  - qt6ct
+  - quota
+  - ranger
+  - realmd
+  - rofi
+  - rpi-imager
+  - rsync
+  - rsyslog
+  - rust-cargo
+  - rust-du-dust
+  - rust-fd-find
+  - rust-just
+  - rust-zoxide
+  - rygel
+  - s-tui
+  - scap-security-guide
+  - scdoc
+  - screen
+  - setserial
+  - shellcheck
+  - shotcut
+  - showtime
+  - simple-scan
+  - slurp
+  - smartmontools
+  - socat
   - software-properties-common
+  - sonic-visualiser
+  - spandsp
+  - speech-dispatcher-contrib
+  - spice-vdagent
+  - squid
   - stow
+  - strace
+  - subunit
+  - subversion
+  - sudo
+  - swappy
+  - sway
+  - symlinks
+  - systemd
+  - systemtap
+  - tcpdump
+  - texinfo
+  - tigervnc
+  - tilda
+  - time
+  - timg
+  - tinysparql
   - tmux
+  - tracker-miners
+  - translate-shell
   - tree
+  - unixodbc
   - unzip
+  - usbutils
+  - util-linux
+  - uv
+  - vagrant
+  - vagrant-libvirt
+  - valgrind
+  - virt-manager
+  - virt-viewer
+  - vorta
+  - vpnc
+  - waybar
+  - webalizer
+  - wev
+  - wf-recorder
   - wget
+  - whois
+  - wiremix
+  - wkhtmltopdf
+  - wtype
+  - x264
+  - x265
+  - xdelta
+  - xdg-desktop-portal
+  - xdg-desktop-portal-gnome
+  - xdg-desktop-portal-gtk
+  - xdg-desktop-portal-wlr
+  - xdg-user-dirs-gtk
+  - xdotool
+  - yadm
+  - ydotool
+  - yelp
   - zip
   - zsh
 
-# Performance tuning sysctls (benchmarked for memory/latency balance)
 base_sysctls:
   vm.swappiness: "10"
   vm.vfs_cache_pressure: "50"
